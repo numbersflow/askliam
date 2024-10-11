@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { ChatInterface } from './ChatInterface'
 import InferenceSettings from './InferenceSettings'
 import PerformanceMonitoring from './PerformanceMonitoring'
-import { Card, CardContent } from "../ui/card"
 
 type InferenceSettingsType = {
   temperature: number;
@@ -61,25 +60,23 @@ const AskLiam: React.FC = () => {
   return (
     <div className="container mx-auto p-4 bg-gray-100 min-h-screen">
       <div className="grid grid-cols-5 gap-4">
-        <div className="col-span-3 space-y-4">
-          <Card className="bg-white shadow-lg">
-            <CardContent className="p-0">
-              <ChatInterface disabled={false} />
-            </CardContent>
-          </Card>
-          <Card className="bg-white shadow-lg">
-            <CardContent>
-              <PerformanceMonitoring />
-            </CardContent>
-          </Card>
+        <div className="col-span-3">
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <ChatInterface disabled={false} />
+          </div>
         </div>
 
-        <div className="col-span-2">
-          <InferenceSettings 
-            settings={inferenceSettings} 
-            onSettingsChange={handleInferenceSettingsChange}
-            disabled={false}
-          />
+        <div className="col-span-2 space-y-4">
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <InferenceSettings 
+              settings={inferenceSettings} 
+              onSettingsChange={handleInferenceSettingsChange}
+              disabled={false}
+            />
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <PerformanceMonitoring />
+          </div>
         </div>
       </div>
     </div>

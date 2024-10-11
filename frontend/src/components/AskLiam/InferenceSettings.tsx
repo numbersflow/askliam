@@ -5,6 +5,7 @@ import { Slider } from "../ui/slider"
 import { Label } from "../ui/label"
 import { Input } from "../ui/input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { InfoCircledIcon } from '@radix-ui/react-icons'
 
 type InferenceSettingsType = {
@@ -113,82 +114,116 @@ export default function InferenceSettings({ settings, onSettingsChange, disabled
     }
   }
 
+  const renderNumberSetting = (key: NumberSetting) => {
+    const { min, max, step } = getSettingProps(key);
+    const value = settings[key];
+    return (
+      <div key={key} className="space-y-2 bg-gray-50 p-3 rounded-lg">
+        <div className="flex justify-between items-center">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Label htmlFor={key} className="flex items-center cursor-help text-lg">
+                  {key} <InfoCircledIcon className="ml-1 h-5 w-5 text-muted-foreground" />
+                </Label>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="bg-popover text-popover-foreground">
+                <p>{tooltips[key]}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <Input
+            type="number"
+            id={`${key}-input`}
+            value={value.toString()}
+            onChange={(e) => handleInputChange(e, key, min, max)}
+            className="w-[4.7rem] text-right bg-gray-200 border-gray-300 text-lg" 
+            step={step}
+            min={min}
+            max={max}
+            disabled={disabled}
+          />
+        </div>
+        <Slider
+          id={key}
+          min={min}
+          max={max}
+          step={step}
+          value={[value]}
+          onValueChange={([newValue]) => handleSettingChange(key, newValue)}
+          className="[&_[role=slider]]:bg-primary [&_[role=slider]]:border-primary [&_[role=slider]]:focus:ring-primary"
+          disabled={disabled}
+        />
+      </div>
+    );
+  }
+
+  const renderBooleanSetting = (key: BooleanSetting) => (
+    <div key={key} className="flex items-center justify-between space-x-4 bg-gray-50 p-4 rounded-lg">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Label htmlFor={key} className="flex items-center cursor-help text-lg">
+              {key} <InfoCircledIcon className="ml-1 h-5 w-5 text-muted-foreground" />
+            </Label>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="bg-popover text-popover-foreground">
+            <p>{tooltips[key]}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <Switch
+        id={key}
+        checked={settings[key]}
+        onCheckedChange={(checked) => handleSettingChange(key, checked)}
+        className="data-[state=checked]:bg-primary h-8 w-14 [&>span]:h-7 [&>span]:w-7"
+        disabled={disabled}
+      />
+    </div>
+  )
+
   return (
-    <Card className="bg-gray-100 text-card-foreground">
+    <Card className="bg-gray-100 text-card-foreground max-w-3xl mx-auto">
       <CardHeader className="bg-white">
         <CardTitle className="text-2xl font-bold">AI Text Generation Settings</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6 bg-white">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {booleanSettings.map((key) => (
-            <div key={key} className="flex flex-col items-center justify-center space-y-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Label htmlFor={key} className="flex items-center cursor-help">
-                      {key} <InfoCircledIcon className="ml-1 h-4 w-4 text-muted-foreground" />
-                    </Label>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="bg-popover text-popover-foreground">
-                    <p>{tooltips[key]}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <Switch
-                id={key}
-                checked={settings[key]}
-                onCheckedChange={(checked) => handleSettingChange(key, checked)}
-                className="data-[state=checked]:bg-primary"
-                disabled={disabled}
-              />
-            </div>
-          ))}
-        </div>
-        <div className="space-y-4">
-          {numberSettings.map((key) => {
-            const { min, max, step } = getSettingProps(key);
-            const value = settings[key];
-            return (
-              <div key={key} className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Label htmlFor={key} className="flex items-center cursor-help">
-                          {key} <InfoCircledIcon className="ml-1 h-4 w-4 text-muted-foreground" />
-                        </Label>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="bg-popover text-popover-foreground">
-                        <p>{tooltips[key]}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <Input
-                    type="number"
-                    id={`${key}-input`}
-                    value={value.toString()}
-                    onChange={(e) => handleInputChange(e, key, min, max)}
-                    className="w-20 text-right"
-                    step={step}
-                    min={min}
-                    max={max}
-                    disabled={disabled}
-                  />
-                </div>
-                <Slider
-                  id={key}
-                  min={min}
-                  max={max}
-                  step={step}
-                  value={[value]}
-                  onValueChange={([newValue]) => handleSettingChange(key, newValue)}
-                  className="[&_[role=slider]]:bg-primary [&_[role=slider]]:border-primary [&_[role=slider]]:focus:ring-primary"
-                  disabled={disabled}
-                />
-              </div>
-            );
-          })}
-        </div>
+      <CardContent className="bg-white">
+        <Tabs defaultValue="sampling" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-4">
+            <TabsTrigger value="sampling">Sampling</TabsTrigger>
+            <TabsTrigger value="tokens">Tokens</TabsTrigger>
+            <TabsTrigger value="repetition">Repetition</TabsTrigger>
+            <TabsTrigger value="misc">Misc</TabsTrigger>
+          </TabsList>
+          <TabsContent value="sampling" className="space-y-4 mt-4">
+            {renderNumberSetting('temperature')}
+            {renderNumberSetting('top_k')}
+            {renderNumberSetting('top_p')}
+            {renderNumberSetting('min_p')}
+            {renderNumberSetting('tfs_z')}
+            {renderNumberSetting('typical_p')}
+          </TabsContent>
+          <TabsContent value="tokens" className="space-y-4 mt-4">
+            {renderNumberSetting('n_predict')}
+            {renderNumberSetting('n_keep')}
+            {renderBooleanSetting('ignore_eos')}
+          </TabsContent>
+          <TabsContent value="repetition" className="space-y-4 mt-4">
+            {renderNumberSetting('repeat_penalty')}
+            {renderNumberSetting('repeat_last_n')}
+            {renderNumberSetting('presence_penalty')}
+            {renderNumberSetting('frequency_penalty')}
+            {renderBooleanSetting('penalize_nl')}
+          </TabsContent>
+          <TabsContent value="misc" className="space-y-4 mt-4">
+            {renderNumberSetting('mirostat')}
+            {renderNumberSetting('mirostat_tau')}
+            {renderNumberSetting('mirostat_eta')}
+            {renderNumberSetting('seed')}
+            {renderBooleanSetting('stream')}
+            {renderBooleanSetting('cache_prompt')}
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   )

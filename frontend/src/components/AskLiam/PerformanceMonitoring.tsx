@@ -16,12 +16,12 @@ const PerformanceMonitoring: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-4">
-          {renderPerformanceMetric("GPU Usage", "N/A")}
-          {renderPerformanceMetric("Memory Usage", "N/A")}
-          {renderPerformanceMetric("Inference Time", "N/A")}
-          {renderPerformanceMetric("Tokens per Second", "N/A")}
-          {renderPerformanceMetric("Total Params", "N/A")}
+          {renderPerformanceMetric("CPU Usage", "N/A")}
+          {renderPerformanceMetric("GPU Memory Usage (%)", "N/A")}
+          {renderPerformanceMetric("GPU Memory Usage", "N/A")}
+          {renderPerformanceMetric("Total Elapsed Time", "N/A")}
           {renderPerformanceMetric("VRAM Usage", "N/A")}
+          {renderPerformanceMetric("Tokens per Second", "N/A")}
         </div>
       </CardContent>
     </Card>
