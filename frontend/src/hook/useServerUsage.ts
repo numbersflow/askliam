@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-// 환경 변수에서 API URL을 가져옵니다. 설정되지 않은 경우 기본값을 사용합니다.
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:9070/api/v1';
+// 환경 변수에서 API URL을 가져오고 API 경로를 추가합니다.
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:9070';
+const API_URL = `${BASE_URL}/api/v1`;
 
 interface ServerUsage {
   cpu_usage: number;
