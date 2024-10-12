@@ -1,6 +1,6 @@
 import { InferenceSettings } from '../components/AskLiam/types';
 
-const API_URL = 'http://localhost:8000/api/v1';  // FastAPI 서버 URL을 적절히 변경하세요
+const API_URL = 'http://localhost:9070/api/v1';  // FastAPI 서버 URL을 적절히 변경하세요
 
 export async function sendMessage(message: string, images: string[], settings: InferenceSettings, systemPrompt: string, sessionId: string): Promise<ReadableStream<Uint8Array> | null> {
   try {

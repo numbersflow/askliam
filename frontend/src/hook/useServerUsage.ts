@@ -11,7 +11,7 @@ interface ServerUsage {
 
 async function getServerUsage(): Promise<ServerUsage> {
   try {
-    const response = await axios.get<ServerUsage>('http://localhost:8000/api/v1/metrics');
+    const response = await axios.get<ServerUsage>('http://localhost:9070/api/v1/metrics');
     return response.data;
   } catch (error) {
     console.error('Failed to fetch server usage:', error);
