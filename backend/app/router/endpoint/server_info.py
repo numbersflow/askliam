@@ -2,15 +2,16 @@ import psutil
 import torch
 from fastapi import APIRouter
 from pydantic import BaseModel
+from typing import Optional
 
 router = APIRouter()
 
 class ServerMetrics(BaseModel):
     cpu_usage: float
     memory_usage: float
-    gpu_name: str = None
-    gpu_usage: float = None
-    vram_usage: float = None
+    gpu_name: Optional[str] = None
+    gpu_usage: Optional[float] = None
+    vram_usage: Optional[float] = None
 
 @router.get("/metrics", response_model=ServerMetrics)
 async def get_server_metrics():

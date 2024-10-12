@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 // 환경 변수에서 API URL을 가져오고 API 경로를 추가합니다.
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:9070';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://114.110.135.85:8080';
 const API_URL = `${BASE_URL}/api/v1`;
 
 interface ServerUsage {
