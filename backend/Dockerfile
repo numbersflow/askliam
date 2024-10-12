@@ -13,12 +13,14 @@ WORKDIR /usr/src/app
 # Poetry 설치
 RUN pip install poetry==1.4.2
 
+# Poetry 설정
+RUN poetry config virtualenvs.create false
+
 # 프로젝트 파일 복사
 COPY pyproject.toml poetry.lock* ./
 
 # Poetry를 사용하여 종속성 설치
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
+RUN poetry install --no-interaction --no-ansi
 
 # libmagic1 설치
 RUN apt-get update && apt-get install -y libmagic1
