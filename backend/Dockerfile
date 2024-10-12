@@ -7,23 +7,24 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=on \
     PIP_DISABLE_PIP_VERSION_CHECK=on
 
-# 필요한 파일들을 복사
-COPY requirements.txt pyproject.toml poetry.lock /usr/src/
-
 # 작업 디렉토리 설정
-WORKDIR /usr/src
+WORKDIR /usr/src/app
+
+# Poetry 설치
+RUN pip install poetry==1.4.2
+
+# 프로젝트 파일 복사
+COPY pyproject.toml poetry.lock* ./
+
+# Poetry를 사용하여 종속성 설치
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi
 
 # libmagic1 설치
 RUN apt-get update && apt-get install -y libmagic1
 
-# Python 패키지 설치
-RUN pip install --no-cache-dir -r requirements.txt
-RUN poetry config virtualenvs.create false && \
-    if [ -f pyproject.toml ]; then poetry install --no-root; fi
-
 # 앱 코드 복사
-COPY . /usr/src/app
-WORKDIR /usr/src/app/
+COPY . .
 
 # 포트 설정
 EXPOSE 9070
