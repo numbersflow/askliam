@@ -2,14 +2,15 @@ import httpx
 import asyncio
 import json
 
-SERVER_URL = "http://localhost:8000/api/v1/generate"  # FastAPI 서버의 엔드포인트 URL
+SERVER_URL = "http://114.110.135.85:8080/api/v1/generate"  # FastAPI 서버의 엔드포인트 URL
 
 async def send_message_to_server(user_input):
     data = {
         "prompt": user_input,
         "temperature": 0.7,
         "n_predict": 100,
-        "stream": True
+        "stream": True,
+        "session_id": "ㅂㅈㅇㅂㅈㅇㅂ",
     }
 
     async with httpx.AsyncClient() as client:

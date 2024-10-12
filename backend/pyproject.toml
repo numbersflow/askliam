@@ -17,6 +17,7 @@ pyyaml = "^6.0.2"
 redis = "^5.1.1"
 psutil = "^6.0.0"
 gputil = "^1.4.0"
+torch = "^2.4.1"
 
 
 [build-system]

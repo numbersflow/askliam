@@ -13,11 +13,13 @@ app = FastAPI()
 router = APIRouter()
 
 # Redis 클라이언트 설정
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379')
 redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 
 # LLAMA 서버 URL 설정
-LLAMA_SERVER_URL = os.getenv('LLAMA_SERVER_URL', 'http://114.110.135.85:8080/completion')
+SERVER_URL = os.getenv('LLAMA_SERVER_URL', 'http://llamacpp-server-gpu:8081')
+LLAMA_SERVER_URL = f'{SERVER_URL}/completion'
+
 
 class CompletionRequest(BaseModel):
     prompt: str

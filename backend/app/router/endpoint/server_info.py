@@ -1,19 +1,16 @@
-from fastapi import FastAPI, APIRouter
-from pydantic import BaseModel
-from typing import Optional
-
 import psutil
-import GPUtil
+import torch
+from fastapi import APIRouter
+from pydantic import BaseModel
 
-app = FastAPI()
 router = APIRouter()
 
 class ServerMetrics(BaseModel):
     cpu_usage: float
     memory_usage: float
-    gpu_name: Optional[str] = None
-    gpu_usage: Optional[float] = None
-    vram_usage: Optional[float] = None
+    gpu_name: str = None
+    gpu_usage: float = None
+    vram_usage: float = None
 
 @router.get("/metrics", response_model=ServerMetrics)
 async def get_server_metrics():
@@ -24,17 +21,15 @@ async def get_server_metrics():
     memory = psutil.virtual_memory()
     memory_usage = round(memory.percent, 2)
     
-    # GPU 정보 (사용 가능한 경우)
-    gpus = GPUtil.getGPUs()
+    # GPU 정보 (torch 사용)
     gpu_name = None
     gpu_usage = None
     vram_usage = None
     
-    if gpus:
-        gpu = gpus[0]  # 첫 번째 GPU 사용
-        gpu_name = gpu.name  # GPU 이름
-        gpu_usage = round(gpu.load * 100, 2)  # GPU 사용률 (%)
-        vram_usage = round(gpu.memoryUsed / gpu.memoryTotal * 100, 2)  # VRAM 사용률 (%)
+    if torch.cuda.is_available():
+        gpu_name = torch.cuda.get_device_name(0)
+        gpu_usage = round(torch.cuda.utilization(0), 2)
+        vram_usage = round(torch.cuda.memory_allocated(0) / torch.cuda.get_device_properties(0).total_memory * 100, 2)
     
     return ServerMetrics(
         cpu_usage=cpu_usage,
