@@ -77,11 +77,13 @@ class ChatSession:
             
             prompt = f"system: {system_prompt}\n\n"
             
-            # 최근 대화 히스토리 (예: 최근 5개 메시지)
-            recent_messages = messages[-5:]
-            for msg in recent_messages:
-                role = "user" if msg["role"] == "user" else "assistant"
-                prompt += f"{role}: {msg['content']}\n"
+            # 가장 최근의 대화 메시지 하나만 사용
+            if messages:
+                last_message = messages[-1]
+                role = "user" if last_message["role"] == "user" else "assistant"
+                # 메시지를 100자까지만 잘라서 사용
+                content = last_message["content"][:100]
+                prompt += f"{role}: {content}\n"
         else:
             prompt = ""
 
