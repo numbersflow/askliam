@@ -5,13 +5,20 @@ import { Button } from "../ui/button"
 
 interface SystemPromptDialogProps {
   children: React.ReactNode
+  onSetSystemPrompt: (prompt: string) => void
 }
 
-export function SystemPromptDialog({ children }: SystemPromptDialogProps) {
+export function SystemPromptDialog({ children, onSetSystemPrompt }: SystemPromptDialogProps) {
   const [systemPrompt, setSystemPrompt] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
+
+  const handleSetPrompt = () => {
+    onSetSystemPrompt(systemPrompt)
+    setIsOpen(false)
+  }
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
@@ -28,7 +35,7 @@ export function SystemPromptDialog({ children }: SystemPromptDialogProps) {
           />
         </div>
         <Button 
-          onClick={() => console.log("System prompt set:", systemPrompt)} 
+          onClick={handleSetPrompt} 
           className="w-full text-lg py-6 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
         >
           Set Prompt

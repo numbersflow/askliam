@@ -60,10 +60,10 @@ const defaultSettings: InferenceSettingsType = {
   mirostat_eta: 0.1,
   seed: -1,
   ignore_eos: false,
-  cache_prompt: false
+  cache_prompt: true
 }
 
-export default function InferenceSettings({ settings, onSettingsChange, disabled }: InferenceSettingsProps) {
+export default function InferenceSettingsComponent({ settings, onSettingsChange, disabled }: InferenceSettingsProps) {
   const [localSettings, setLocalSettings] = useState<InferenceSettingsType>({ ...defaultSettings, ...settings });
 
   useEffect(() => {
@@ -165,7 +165,7 @@ export default function InferenceSettings({ settings, onSettingsChange, disabled
             id={`${key}-input`}
             value={value.toString()}
             onChange={(e) => handleInputChange(e, key, min, max)}
-            className="w-[4.15rem] text-right bg-gray-200 border-gray-300 text-lg" 
+            className="w-[4.147rem] text-right bg-gray-200 border-gray-300 text-lg" 
             step={step}
             min={min}
             max={max}

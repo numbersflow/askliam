@@ -4,15 +4,6 @@ import Main from './pages/main';
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(true); // For demonstration purposes
-  const [user, setUser] = useState({
-    name: "John Doe",
-    email: "john@example.com"
-  });
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    // Add any additional logout logic here
-  };
 
   return (
     <Router>
@@ -22,7 +13,7 @@ const App: React.FC = () => {
             path="/" 
             element={
               isLoggedIn ? (
-                <Main onLogout={handleLogout} user={user} />
+                <Main />
               ) : (
                 <div className="flex items-center justify-center h-screen">
                   <p className="text-2xl font-semibold text-gray-700">Please log in</p>
