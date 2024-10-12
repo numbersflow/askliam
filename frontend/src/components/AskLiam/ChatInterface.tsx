@@ -1,56 +1,221 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { Input } from "../ui/input"
 import { Button } from "../ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
-import { Textarea } from "../ui/textarea"
-import { Sliders, Loader, Bot, Image as ImageIcon, BarChart, Table, Paperclip, X } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-
-type MessageContent = 
-  | string 
-  | { type: 'graph', data: any[] }
-  | { type: 'image', url: string }
-  | { type: 'table', data: any[] }
-  | { type: 'file', name: string, url: string }
-
-interface ChatMessage {
-  role: 'user' | 'assistant'
-  content: MessageContent
-}
+import { Loader, Paperclip, Sliders, Bot, Settings, Image as ImageIcon, ArrowUp, ChevronRight, X } from 'lucide-react'
+import { SystemPromptDialog } from './SystemPromptDialog'
+import { MessageContent, ChatMessage } from './types'
+import { Dialog, DialogContent } from "../ui/dialog"
+import { BarChart2, Image, Table, File } from 'lucide-react'
+import InferenceSettings from './InferenceSettings'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 interface ChatInterfaceProps {
   disabled: boolean;
 }
 
-const ContentModal: React.FC<{ content: MessageContent | null; isOpen: boolean; onClose: () => void }> = ({ content, isOpen, onClose }) => {
-  if (!isOpen || !content || typeof content === 'string') return null;
+export default function ChatInterface({ disabled }: ChatInterfaceProps) {
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [newMessage, setNewMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [pastedImages, setPastedImages] = useState<string[]>([])
+  const [showContentPanel, setShowContentPanel] = useState(false)
+  const [activeContent, setActiveContent] = useState<MessageContent | null>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const renderContent = () => {
-    switch (content.type) {
+  const [serverUsage, setServerUsage] = useState({
+    cpuUsage: 'N/A',
+    gpuUsage: 'N/A',
+    totalTime: '00:00:00',
+    vramUsage: 'N/A'
+  });
+
+  const [inferenceSettings, setInferenceSettings] = useState({
+    temperature: 0.7,
+    top_k: 40,
+    top_p: 0.95,
+    min_p: 0.05,
+    n_predict: -1,
+    n_keep: 0,
+    stream: true,
+    tfs_z: 1.0,
+    typical_p: 1.0,
+    repeat_penalty: 1.1,
+    repeat_last_n: 64,
+    penalize_nl: true,
+    presence_penalty: 0.0,
+    frequency_penalty: 0.0,
+    mirostat: 0,
+    mirostat_tau: 5.0,
+    mirostat_eta: 0.1,
+    seed: -1,
+    ignore_eos: false,
+    cache_prompt: false,
+  });
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
+  }, [chatMessages])
+
+  useEffect(() => {
+    const updateServerUsage = () => {
+      setServerUsage({
+        cpuUsage: Math.round(Math.random() * 100) + '%',
+        gpuUsage: Math.round(Math.random() * 100) + '%',
+        totalTime: '00:' + Math.round(Math.random() * 59).toString().padStart(2, '0') + ':' + Math.round(Math.random() * 59).toString().padStart(2, '0'),
+        vramUsage: Math.round(Math.random() * 16) + 'GB'
+      });
+    };
+
+    const intervalId = setInterval(updateServerUsage, 5000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const handleSendMessage = () => {
+    if ((newMessage.trim() || pastedImages.length > 0) && !disabled) {
+      const newChatMessage: ChatMessage = {
+        role: 'user',
+        content: newMessage,
+        images: pastedImages
+      }
+      setChatMessages([...chatMessages, newChatMessage])
+      setNewMessage('')
+      setPastedImages([])
+      setIsLoading(true)
+      
+      setTimeout(() => {
+        const aiResponse = generateAIResponse(newMessage)
+        setChatMessages(prev => [...prev, { role: 'assistant', content: aiResponse }])
+        setIsLoading(false)
+        if (typeof aiResponse !== 'string') {
+          setActiveContent(aiResponse)
+          setShowContentPanel(true)
+        }
+      }, 1000)
+    }
+  }
+
+  const generateAIResponse = (userMessage: string): MessageContent => {
+    if (userMessage.toLowerCase().includes('graph')) {
+      return {
+        type: 'graph',
+        data: [
+          { name: 'Page A', uv: 4000, pv: 2400, amt: 2400 },
+          { name: 'Page B', uv: 3000, pv: 1398, amt: 2210 },
+          { name: 'Page C', uv: 2000, pv: 9800, amt: 2290 },
+          { name: 'Page D', uv: 2780, pv: 3908, amt: 2000 },
+        ]
+      }
+    } else if (userMessage.toLowerCase().includes('table')) {
+      return {
+        type: 'table',
+        data: [
+          { id: 1, name: 'John Doe', age: 32 },
+          { id: 2, name: 'Jane Doe', age: 28 },
+          { id: 3, name: 'Bob Smith', age: 45 },
+        ]
+      }
+    } else if (userMessage.toLowerCase().includes('image')) {
+      return {
+        type: 'image',
+        url: 'https://via.placeholder.com/150'
+      }
+    } else if (userMessage.toLowerCase().includes('file')) {
+      return {
+        type: 'file',
+        name: 'example.txt',
+        url: 'https://example.com/example.txt'
+      }
+    } else {
+      return "I've received your message. How can I help you further?"
+    }
+  }
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          setPastedImages(prev => [...prev, e.target?.result as string])
+        }
+        reader.readAsDataURL(file)
+      })
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const blob = items[i].getAsFile()
+        if (blob) {
+          const reader = new FileReader()
+          reader.onload = (e) => {
+            setPastedImages(prev => [...prev, e.target?.result as string])
+          }
+          reader.readAsDataURL(blob)
+        }
+      }
+    }
+  }
+
+  const handleImageDelete = (index: number) => {
+    setPastedImages(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const renderMessageContent = (content: MessageContent) => {
+    if (typeof content === 'string') {
+      return content;
+    }
+    return (
+      <Button
+        onClick={() => {
+          setActiveContent(content)
+          setShowContentPanel(true)
+        }}
+        variant="outline"
+        className="font-semibold text-primary hover:text-primary-dark transition-all duration-300 transform hover:scale-105 hover:shadow-md bg-white border border-primary rounded-lg px-4 py-2 flex items-center space-x-2"
+      >
+        {content.type === 'graph' && <BarChart2 className="h-4 w-4" />}
+        {content.type === 'image' && <Image className="h-4 w-4" />}
+        {content.type === 'table' && <Table className="h-4 w-4" />}
+        {content.type === 'file' && <File className="h-4 w-4" />}
+        <span>View {content.type} content</span>
+      </Button>
+    );
+  }
+
+  const renderContentPanel = () => {
+    if (!activeContent || typeof activeContent === 'string') return null;
+
+    switch (activeContent.type) {
       case 'graph':
         return (
-          <div className="w-full h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={content.data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="pv" stroke="#8884d8" />
-                <Line type="monotone" dataKey="uv" stroke="#82ca9d" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={activeContent.data || []}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="pv" stroke="#8884d8" />
+              <Line type="monotone" dataKey="uv" stroke="#82ca9d" />
+            </LineChart>
+          </ResponsiveContainer>
         );
       case 'image':
-        return <img src={content.url} alt="Chat image" className="max-w-full h-auto" />;
+        return <img src={activeContent.url} alt="Content" className="max-w-full h-auto" />;
       case 'table':
+        if (!activeContent.data || activeContent.data.length === 0) return null;
         return (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                {Object.keys(content.data[0]).map((key) => (
+                {Object.keys(activeContent.data[0]).map((key) => (
                   <th key={key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {key}
                   </th>
@@ -58,11 +223,11 @@ const ContentModal: React.FC<{ content: MessageContent | null; isOpen: boolean; 
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {content.data.map((row, index) => (
+              {activeContent.data.map((row, index) => (
                 <tr key={index}>
-                  {Object.values(row).map((value: any, cellIndex) => (
+                  {Object.values(row).map((value, cellIndex) => (
                     <td key={cellIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {value}
+                      {String(value)}
                     </td>
                   ))}
                 </tr>
@@ -72,9 +237,11 @@ const ContentModal: React.FC<{ content: MessageContent | null; isOpen: boolean; 
         );
       case 'file':
         return (
-          <div>
-            <p>File: {content.name}</p>
-            <a href={content.url} download className="text-blue-500 hover:underline">Download</a>
+          <div className="flex items-center space-x-2">
+            <File className="h-6 w-6" />
+            <a href={activeContent.url} download={activeContent.name} className="text-blue-600 hover:underline">
+              {activeContent.name}
+            </a>
           </div>
         );
       default:
@@ -83,280 +250,157 @@ const ContentModal: React.FC<{ content: MessageContent | null; isOpen: boolean; 
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px] w-[90vw] bg-white shadow-lg border border-gray-200">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-gray-900">
-            {content.type.charAt(0).toUpperCase() + content.type.slice(1)} Content
-          </DialogTitle>
-        </DialogHeader>
-        <div className="mt-4">
-          {renderContent()}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-const ChatMessage: React.FC<{ message: ChatMessage; onContentClick: (content: MessageContent) => void }> = ({ message, onContentClick }) => {
-  const getContentTypeIcon = () => {
-    if (typeof message.content === 'string') {
-      return null;
-    }
-
-    switch (message.content.type) {
-      case 'graph':
-        return <BarChart className="w-4 h-4 mr-2" />;
-      case 'image':
-        return <ImageIcon className="w-4 h-4 mr-2" />;
-      case 'table':
-        return <Table className="w-4 h-4 mr-2" />;
-      case 'file':
-        return <Paperclip className="w-4 h-4 mr-2" />;
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className={`mb-2 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
-      <div className={`inline-flex items-start ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-        {message.role === 'assistant' && (
-          <div className="mr-2 mt-1">
-            <Bot className="h-6 w-6 text-blue-500" />
-          </div>
-        )}
-        <div className={`inline-block p-2 rounded-lg ${message.role === 'user' ? 'bg-blue-100' : 'bg-gray-200'}`}>
-          {typeof message.content === 'string' ? (
-            <p>{message.content}</p>
-          ) : (
-            <button
-              onClick={() => onContentClick(message.content)}
-              className="flex items-center text-left px-3 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
-            >
-              {getContentTypeIcon()}
-              <span>{message.content.type.charAt(0).toUpperCase() + message.content.type.slice(1)} content (click to view)</span>
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export function ChatInterface({ disabled }: ChatInterfaceProps) {
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { role: 'user', content: 'Hello, how are you?' },
-    { role: 'assistant', content: "I'm an AI, I don't have feelings." }
-  ])
-  const [newMessage, setNewMessage] = useState('')
-  const [systemPrompt, setSystemPrompt] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [generatingMessage, setGeneratingMessage] = useState('')
-  const [modalContent, setModalContent] = useState<MessageContent | null>(null)
-  const [pendingImage, setPendingImage] = useState<string | null>(null)
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (generatingMessage) {
-      const timer = setTimeout(() => {
-        setGeneratingMessage(prev => prev + '.')
-      }, 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [generatingMessage])
-
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
-    }
-  }, [chatMessages])
-
-  const handleSendMessage = () => {
-    if ((newMessage.trim() || pendingImage || pendingFile) && !disabled) {
-      const messageContent: MessageContent = pendingImage 
-        ? { type: 'image', url: pendingImage }
-        : pendingFile
-        ? { type: 'file', name: pendingFile.name, url: URL.createObjectURL(pendingFile) }
-        : newMessage;
-
-      setChatMessages([...chatMessages, { role: 'user', content: messageContent }])
-      setNewMessage('')
-      setPendingImage(null)
-      setPendingFile(null)
-      setIsLoading(true)
-      
-      // Simulated AI response
-      setTimeout(() => {
-        setChatMessages(prev => [...prev, { role: 'assistant', content: "I've received your message. How can I help you further?" }])
-        setIsLoading(false)
-      }, 1000)
-    }
-  }
-
-  const handleContentClick = (content: MessageContent) => {
-    if (typeof content !== 'string') {
-      setModalContent(content);
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    const items = e.clipboardData.items;
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf('image') !== -1) {
-        e.preventDefault();
-        const blob = items[i].getAsFile();
-        if (blob) {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            if (event.target && typeof event.target.result === 'string') {
-              setPendingImage(event.target.result);
-            }
-          };
-          reader.readAsDataURL(blob);
-        }
-        break;
-      }
-    }
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target && typeof event.target.result === 'string') {
-            setPendingImage(event.target.result);
-          }
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setPendingFile(file);
-      }
-    }
-  };
-
-  return (
-    <Card className="bg-white shadow-md h-full flex flex-col max-w-5xl mx-auto">
-      <CardHeader className="bg-white">
-        <CardTitle className="text-2xl font-bold">Chat</CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow flex flex-col space-y-4 overflow-hidden p-0">
-        <div 
-          ref={chatContainerRef} 
-          className="flex-grow overflow-y-auto p-4 border rounded-md bg-gray-50"
-          style={{ height: 'calc(100vh - 200px)', width: '100%' }}
-        >
-          {chatMessages.map((msg, index) => (
-            <ChatMessage key={index} message={msg} onContentClick={handleContentClick} />
-          ))}
-          {isLoading && (
-            <div className="flex justify-center items-center">
-              {generatingMessage ? (
-                <p className="text-blue-500">{generatingMessage}</p>
-              ) : (
-                <Loader className="animate-spin h-6 w-6 text-blue-500" />
-              )}
-            </div>
-          )}
-        </div>
-        {pendingImage && (
-          <div className="relative flex items-center justify-between bg-gray-100 p-2 rounded-md">
-            <img src={pendingImage} alt="Pending upload" className="h-16 w-16 object-cover rounded" />
+    <div className="flex w-full h-full">
+      <Card className={`h-full flex flex-col shadow-lg ${showContentPanel ? 'w-2/3' : 'w-full'} transition-all duration-300`}>
+        <CardHeader className="pb-2 bg-gradient-to-r from-primary to-primary-dark flex items-center justify-between">
+          <div className="flex items-center w-full">
+            <CardTitle className="text-2xl font-bold text-gray-800">Chat</CardTitle>
             <Button
-              onClick={() => setPendingImage(null)}
-              variant="secondary"
-              className="h-8 w-8 p-0 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full absolute top-2 right-2"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSettings(true)}
+              className="ml-2 text-gray-800 hover:text-primary-dark transition-all duration-300 transform hover:scale-110 hover:rotate-180 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 animate-pulse"
             >
-              <X className="h-4 w-4" />
+              <Settings className="h-6 w-6" />
             </Button>
           </div>
-        )}
-        {pendingFile && (
-          <div className="relative flex items-center justify-between bg-gray-100 p-2 rounded-md">
-            <div className="flex items-center">
-              <Paperclip className="h-6 w-6 mr-2" />
-              <span className="text-sm">{pendingFile.name}</span>
-            </div>
-            <Button
-              onClick={() => setPendingFile(null)}
-              variant="secondary"
-              className="h-8 w-8 p-0 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full absolute top-2 right-2"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-        <div className="flex items-center p-4 w-full space-x-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="h-12 w-12 p-0 flex-shrink-0 flex items-center justify-center" disabled={disabled}>
-                <Sliders className="h-6 w-6" />
-                <span className="sr-only">Set System Prompt</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] w-[90vw] bg-white shadow-lg border border-gray-200">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-gray-900">Set System Prompt</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <Textarea
-                  value={systemPrompt}
-                  onChange={(e) => setSystemPrompt(e.target.value)}
-                  placeholder="Enter system prompt here..."
-                  className="min-h-[200px] text-lg p-4 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-              <Button 
-                onClick={() => console.log("System prompt set:", systemPrompt)} 
-                className="w-full text-lg py-6 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-              >
-                Set Prompt
-              </Button>
-            </DialogContent>
-          </Dialog>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileUpload}
-            className="hidden"
-            accept="image/*, */*"
-          />
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 h-12 w-12 p-0 flex-shrink-0 flex items-center justify-center rounded-md transition-all duration-200"
-            disabled={disabled}
+        </CardHeader>
+        <CardContent className="flex-grow flex flex-col p-4 space-y-4">
+          <div 
+            ref={chatContainerRef} 
+            className="flex-grow overflow-y-auto p-6 border rounded-md bg-gray-50 shadow-inner"
+            style={{ height: '700px' }}  
           >
-            <Paperclip className="h-6 w-6" />
-          </Button>
-          <div className="flex-grow flex items-center space-x-2">
-            <Input 
-              value={newMessage} 
-              onChange={(e) => setNewMessage(e.target.value)}
-              onPaste={handlePaste}
-              placeholder="Type your message here..."
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              className="flex-grow h-12 text-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            <div className="sticky top-0 bg-gray-100 p-2 mb-4 rounded-md shadow-sm text-xs text-gray-600 flex justify-between items-center">
+              <span>CPU: {serverUsage.cpuUsage}</span>
+              <span>GPU: {serverUsage.gpuUsage}</span>
+              <span>시간: {serverUsage.totalTime}</span>
+              <span>VRAM: {serverUsage.vramUsage}</span>
+            </div>
+            {chatMessages.map((msg, index) => (
+              <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}>
+                {msg.role === 'assistant' && (
+                  <div className="mr-2 flex-shrink-0">
+                    <Bot className="h-6 w-6 text-primary" />
+                  </div>
+                )}
+                <div className={`max-w-[70%] p-3 rounded-lg shadow-md ${msg.role === 'user' ? 'bg-blue-100' : 'bg-white'}`}>
+                  {renderMessageContent(msg.content)}
+                  {msg.images && msg.images.map((img, imgIndex) => (
+                    <img key={imgIndex} src={img} alt={`Upload ${imgIndex + 1}`} className="mt-2 max-w-full h-auto rounded-md" />
+                  ))}
+                </div>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex justify-center items-center">
+                <Loader className="animate-spin h-6 w-6 text-primary" />
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col space-y-2">
+            {pastedImages.length > 0 && (
+              <div className="flex flex-wrap gap-2 p-2 bg-gray-100 rounded-md">
+                {pastedImages.map((img, index) => (
+                  <div key={index} className="relative">
+                    <img src={img} alt={`Pasted ${index + 1}`} className="w-20 h-20 object-cover rounded-md" />
+                    <button
+                      onClick={() => handleImageDelete(index)}
+                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 transform translate-x-1/2 -translate-y-1/2"
+                    >
+                      <Loader className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center  space-x-2 bg-white border border-gray-300 rounded-md p-2">
+              <SystemPromptDialog>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  <Sliders className="h-5 w-5" />
+                </Button>
+              </SystemPromptDialog>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                className="hidden"
+                accept="image/*"
+                multiple
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-gray-600 hover:text-gray-800"
+              >
+                <Paperclip className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-gray-600 hover:text-gray-800"
+              >
+                <ImageIcon className="h-5 w-5" />
+              </Button>
+              <input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onPaste={handlePaste}
+                placeholder="Use shift + return for new line"
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                className="flex-grow bg-transparent text-black placeholder-gray-400 focus:outline-none"
+                disabled={disabled}
+              />
+              <Button 
+                onClick={handleSendMessage} 
+                disabled={isLoading || disabled}
+                className="bg-orange-600 hover:bg-orange-700 text-white rounded-md p-2"
+                size="sm"
+              >
+                <ArrowUp className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      {showContentPanel && (
+        <Card className="w-1/3 h-full ml-4 flex flex-col shadow-lg">
+          <CardHeader className="pb-2 bg-gradient-to-r from-primary to-primary-dark flex items-center justify-between relative">
+            <CardTitle className="text-2xl font-bold text-gray-800">Content Panel</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowContentPanel(false)
+                setActiveContent(null)
+              }}
+              className="absolute top-2 right-2 text-gray-800 hover:text-primary-dark transition-all duration-300 transform hover:scale-110 hover:rotate-90"
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </CardHeader>
+          <CardContent className="flex-grow overflow-y-auto p-4">
+            {renderContentPanel()}
+          </CardContent>
+        </Card>
+      )}
+      <Dialog open={showSettings} onOpenChange={setShowSettings}>
+        <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden">
+          <div className="p-6 bg-white">
+            <InferenceSettings
+              settings={inferenceSettings}
+              onSettingsChange={(newSettings) => setInferenceSettings({ ...inferenceSettings, ...newSettings })}
               disabled={disabled}
             />
-            <Button 
-              onClick={handleSendMessage} 
-              className="bg-blue-500 hover:bg-blue-600 text-white h-12 px-6 text-lg font-semibold rounded-md transition-all duration-200 flex-shrink-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-              disabled={isLoading || disabled}
-            >
-              Send
-            </Button>
           </div>
-        </div>
-      </CardContent>
-      <ContentModal
-        content={modalContent}
-        isOpen={!!modalContent}
-        onClose={() => setModalContent(null)}
-      />
-    </Card>
+        </DialogContent>
+      </Dialog>
+    </div>
   )
 }

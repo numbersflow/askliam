@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Switch } from "../ui/switch"
 import { Slider } from "../ui/slider"
@@ -40,15 +40,46 @@ interface InferenceSettingsProps {
   disabled: boolean;
 }
 
+const defaultSettings: InferenceSettingsType = {
+  temperature: 0.8,
+  top_k: 40,
+  top_p: 0.95,
+  min_p: 0.05,
+  n_predict: -1,
+  n_keep: 0,
+  stream: true,
+  tfs_z: 1.0,
+  typical_p: 1.0,
+  repeat_penalty: 1.1,
+  repeat_last_n: 64,
+  penalize_nl: true,
+  presence_penalty: 0.0,
+  frequency_penalty: 0.0,
+  mirostat: 0,
+  mirostat_tau: 5.0,
+  mirostat_eta: 0.1,
+  seed: -1,
+  ignore_eos: false,
+  cache_prompt: false
+}
+
 export default function InferenceSettings({ settings, onSettingsChange, disabled }: InferenceSettingsProps) {
+  const [localSettings, setLocalSettings] = useState<InferenceSettingsType>({ ...defaultSettings, ...settings });
+
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
+
   const handleSettingChange = (setting: keyof InferenceSettingsType, value: boolean | number) => {
-    onSettingsChange({ [setting]: value })
+    const newSettings = { ...localSettings, [setting]: value };
+    setLocalSettings(newSettings);
+    onSettingsChange(newSettings);
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, key: NumberSetting, min: number, max: number) => {
-    const value = parseFloat(e.target.value)
+    const value = parseFloat(e.target.value);
     if (!isNaN(value) && value >= min && value <= max) {
-      handleSettingChange(key, value)
+      handleSettingChange(key, value);
     }
   }
 
@@ -59,7 +90,7 @@ export default function InferenceSettings({ settings, onSettingsChange, disabled
     min_p: "가장 가능성 높은 토큰의 확률에 대한 상대적인 최소 확률입니다. 기본값은 0.05입니다.",
     n_predict: "생성할 최대 토큰 수입니다. 기본값은 -1로, 무한대를 의미합니다.",
     n_keep: "컨텍스트 크기 초과 시 프롬프트에서 유지할 토큰 수입니다. 기본값은 0입니다.",
-    stream: "실시간으로 각 예측 토큰을 받을지 여부를 설정합니다. 기본값은 false입니다.",
+    stream: "실시간으로 각 예측 토큰을 받을지 여부를 설정합니다. 기본값은 true입니다.",
     tfs_z: "꼬리 자유 샘플링 파라미터입니다. 기본값은 1.0으로, 비활성화를 의미합니다.",
     typical_p: "지역적으로 전형적인 샘플링 파라미터입니다. 기본값은 1.0으로, 비활성화를 의미합니다.",
     repeat_penalty: "토큰 시퀀스 반복을 제어합니다. 기본값은 1.1입니다.",
@@ -74,9 +105,6 @@ export default function InferenceSettings({ settings, onSettingsChange, disabled
     ignore_eos: "EOS 토큰을 무시하고 계속 생성할지 여부입니다. 기본값은 false입니다.",
     cache_prompt: "이전 요청의 KV 캐시를 재사용할지 여부입니다. 기본값은 false입니다."
   }
-
-  const booleanSettings: BooleanSetting[] = ['stream', 'penalize_nl', 'ignore_eos', 'cache_prompt'];
-  const numberSettings: NumberSetting[] = ['temperature', 'top_k', 'top_p', 'min_p', 'n_predict', 'n_keep', 'tfs_z', 'typical_p', 'repeat_penalty', 'repeat_last_n', 'presence_penalty', 'frequency_penalty', 'mirostat', 'mirostat_tau', 'mirostat_eta', 'seed'];
 
   const getSettingProps = (key: NumberSetting) => {
     switch (key) {
@@ -116,7 +144,7 @@ export default function InferenceSettings({ settings, onSettingsChange, disabled
 
   const renderNumberSetting = (key: NumberSetting) => {
     const { min, max, step } = getSettingProps(key);
-    const value = settings[key];
+    const value = localSettings[key];
     return (
       <div key={key} className="space-y-2 bg-gray-50 p-3 rounded-lg">
         <div className="flex justify-between items-center">
@@ -137,7 +165,7 @@ export default function InferenceSettings({ settings, onSettingsChange, disabled
             id={`${key}-input`}
             value={value.toString()}
             onChange={(e) => handleInputChange(e, key, min, max)}
-            className="w-[4.7rem] text-right bg-gray-200 border-gray-300 text-lg" 
+            className="w-[4.15rem] text-right bg-gray-200 border-gray-300 text-lg" 
             step={step}
             min={min}
             max={max}
@@ -174,7 +202,7 @@ export default function InferenceSettings({ settings, onSettingsChange, disabled
       </TooltipProvider>
       <Switch
         id={key}
-        checked={settings[key]}
+        checked={localSettings[key]}
         onCheckedChange={(checked) => handleSettingChange(key, checked)}
         className="data-[state=checked]:bg-primary h-8 w-14 [&>span]:h-7 [&>span]:w-7"
         disabled={disabled}
@@ -195,34 +223,36 @@ export default function InferenceSettings({ settings, onSettingsChange, disabled
             <TabsTrigger value="repetition">Repetition</TabsTrigger>
             <TabsTrigger value="misc">Misc</TabsTrigger>
           </TabsList>
-          <TabsContent value="sampling" className="space-y-4 mt-4">
-            {renderNumberSetting('temperature')}
-            {renderNumberSetting('top_k')}
-            {renderNumberSetting('top_p')}
-            {renderNumberSetting('min_p')}
-            {renderNumberSetting('tfs_z')}
-            {renderNumberSetting('typical_p')}
-          </TabsContent>
-          <TabsContent value="tokens" className="space-y-4 mt-4">
-            {renderNumberSetting('n_predict')}
-            {renderNumberSetting('n_keep')}
-            {renderBooleanSetting('ignore_eos')}
-          </TabsContent>
-          <TabsContent value="repetition" className="space-y-4 mt-4">
-            {renderNumberSetting('repeat_penalty')}
-            {renderNumberSetting('repeat_last_n')}
-            {renderNumberSetting('presence_penalty')}
-            {renderNumberSetting('frequency_penalty')}
-            {renderBooleanSetting('penalize_nl')}
-          </TabsContent>
-          <TabsContent value="misc" className="space-y-4 mt-4">
-            {renderNumberSetting('mirostat')}
-            {renderNumberSetting('mirostat_tau')}
-            {renderNumberSetting('mirostat_eta')}
-            {renderNumberSetting('seed')}
-            {renderBooleanSetting('stream')}
-            {renderBooleanSetting('cache_prompt')}
-          </TabsContent>
+          <div className="h-[600px] overflow-y-auto">
+            <TabsContent value="sampling" className="space-y-4 mt-4">
+              {renderNumberSetting('temperature')}
+              {renderNumberSetting('top_k')}
+              {renderNumberSetting('top_p')}
+              {renderNumberSetting('min_p')}
+              {renderNumberSetting('tfs_z')}
+              {renderNumberSetting('typical_p')}
+            </TabsContent>
+            <TabsContent value="tokens" className="space-y-4 mt-4">
+              {renderNumberSetting('n_predict')}
+              {renderNumberSetting('n_keep')}
+              {renderBooleanSetting('ignore_eos')}
+            </TabsContent>
+            <TabsContent value="repetition" className="space-y-4 mt-4">
+              {renderNumberSetting('repeat_penalty')}
+              {renderNumberSetting('repeat_last_n')}
+              {renderNumberSetting('presence_penalty')}
+              {renderNumberSetting('frequency_penalty')}
+              {renderBooleanSetting('penalize_nl')}
+            </TabsContent>
+            <TabsContent value="misc" className="space-y-4 mt-4">
+              {renderNumberSetting('mirostat')}
+              {renderNumberSetting('mirostat_tau')}
+              {renderNumberSetting('mirostat_eta')}
+              {renderNumberSetting('seed')}
+              {renderBooleanSetting('stream')}
+              {renderBooleanSetting('cache_prompt')}
+            </TabsContent>
+          </div>
         </Tabs>
       </CardContent>
     </Card>
