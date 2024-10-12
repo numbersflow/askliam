@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, APIRouter, Request
 from fastapi.responses import StreamingResponse
 import httpx
@@ -12,7 +13,11 @@ app = FastAPI()
 router = APIRouter()
 
 # Redis 클라이언트 설정
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
+redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+
+# LLAMA 서버 URL 설정
+LLAMA_SERVER_URL = os.getenv('LLAMA_SERVER_URL', 'http://114.110.135.85:8080/completion')
 
 class CompletionRequest(BaseModel):
     prompt: str
@@ -35,11 +40,9 @@ class CompletionRequest(BaseModel):
     mirostat_eta: float = 0.1
     seed: int = -1
     ignore_eos: bool = False
-    cache_prompt: bool = True  # 캐시 사용
-    system_prompt: str = ""  # 시스템 프롬프트 추가
-    session_id: str  # 세션 ID 추가
-
-LLAMA_SERVER_URL = "http://114.110.135.85:8080/completion"
+    cache_prompt: bool = True
+    system_prompt: str = ""
+    session_id: str
 
 class ChatSession:
     def __init__(self, session_id):
@@ -81,7 +84,7 @@ class ChatSession:
             prompt = ""
 
         # 현재 질문 추가
-        prompt += f"user: {current_user_input}\assistant: "
+        prompt += f"user: {current_user_input}\nassistant: "
         print("Generated Prompt:")
         print(prompt)
         return prompt

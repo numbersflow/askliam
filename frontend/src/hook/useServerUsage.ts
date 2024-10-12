@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
+// 환경 변수에서 API URL을 가져옵니다. 설정되지 않은 경우 기본값을 사용합니다.
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:9070/api/v1';
+
 interface ServerUsage {
   cpu_usage: number;
   memory_usage: number;
@@ -11,7 +14,7 @@ interface ServerUsage {
 
 async function getServerUsage(): Promise<ServerUsage> {
   try {
-    const response = await axios.get<ServerUsage>('http://localhost:9070/api/v1/metrics');
+    const response = await axios.get<ServerUsage>(`${API_URL}/metrics`);
     return response.data;
   } catch (error) {
     console.error('Failed to fetch server usage:', error);
