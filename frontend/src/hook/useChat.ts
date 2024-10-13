@@ -15,7 +15,7 @@ export async function sendMessage(message: string, images: string[], settings: I
         prompt: message,
         system_prompt: systemPrompt,
         session_id: sessionId,
-        images,  // 이미지 데이터 추가
+        image_data: images,  // 이미지 데이터 추가
         ...settings,
       }),
     });

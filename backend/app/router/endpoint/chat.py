@@ -4,10 +4,10 @@ from fastapi.responses import StreamingResponse
 import httpx
 import asyncio
 from pydantic import BaseModel
-from typing import Optional
-import json
+from typing import Optional, List
 import re
 import redis
+import json
 
 app = FastAPI()
 router = APIRouter()
@@ -20,6 +20,9 @@ redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 SERVER_URL = os.getenv('LLAMA_SERVER_URL', 'http://llamacpp-server-gpu:8081')
 LLAMA_SERVER_URL = f'{SERVER_URL}/completion'
 
+class ImageData(BaseModel):
+    data: str
+    id: int
 
 class CompletionRequest(BaseModel):
     prompt: str
@@ -45,6 +48,7 @@ class CompletionRequest(BaseModel):
     cache_prompt: bool = True
     system_prompt: str = ""
     session_id: str
+    image_data: Optional[List[ImageData]] = None
 
 class ChatSession:
     def __init__(self, session_id):
@@ -95,7 +99,20 @@ class ChatSession:
 
 async def fetch_llama_stream(data: CompletionRequest, chat_session: ChatSession):
     async with httpx.AsyncClient() as client:
-        async with client.stream('POST', LLAMA_SERVER_URL, json=data.dict()) as response:
+        # 이미지 데이터가 있는 경우, 프롬프트에 이미지 참조 추가
+        if data.image_data:
+            for img in data.image_data:
+                data.prompt = data.prompt.replace(f"[IMAGE{img.id}]", f"[img-{img.id}]")
+
+        request_data = data.dict()
+        
+        # 이미지 데이터가 있는 경우에만 image_data 필드 포함
+        if data.image_data:
+            request_data['image_data'] = [img.dict() for img in data.image_data]
+        else:
+            request_data.pop('image_data', None)
+
+        async with client.stream('POST', LLAMA_SERVER_URL, json=request_data) as response:
             assistant_response = ""
             async for chunk in response.aiter_text():
                 try:

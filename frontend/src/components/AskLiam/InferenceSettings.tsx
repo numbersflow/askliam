@@ -165,7 +165,7 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
             id={`${key}-input`}
             value={value.toString()}
             onChange={(e) => handleInputChange(e, key, min, max)}
-            className="w-[4.147rem] text-right bg-gray-200 border-gray-300 text-lg" 
+            className="w-[4.146rem] text-right bg-gray-200 border-gray-300 text-lg" 
             step={step}
             min={min}
             max={max}
