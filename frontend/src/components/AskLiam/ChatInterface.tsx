@@ -226,16 +226,16 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
             className="flex-grow overflow-y-auto p-2 sm:p-4 border rounded-md bg-gray-50 shadow-inner"
             style={{ height: '60vh', maxHeight: '700px' }}  
           >
-            <div className="sticky top-0 bg-blue-500 p-2 sm:p-4 mb-2 sm:mb-4 rounded-md shadow-md text-xs sm:text-sm text-white flex flex-wrap justify-between items-center">
+            <div className="sticky top-0 bg-blue-500 p-1 sm:p-2 mb-2 rounded-md shadow-md text-xs text-white flex flex-wrap justify-between items-center">
               {serverUsage.gpu_name && (
-                <span className="font-semibold w-full sm:w-auto mb-1 sm:mb-0">GPU: {serverUsage.gpu_name}</span>
+                <span className="font-semibold w-full mb-1">GPU: {serverUsage.gpu_name}</span>
               )}
-              <span className="font-semibold w-1/2 sm:w-auto">CPU: {serverUsage.cpu_usage.toFixed(2)}%</span>
-              <span className="font-semibold w-1/2 sm:w-auto">Memory: {serverUsage.memory_usage.toFixed(2)}%</span>
+              <span className="w-1/2">CPU: {serverUsage.cpu_usage.toFixed(2)}%</span>
+              <span className="w-1/2">Mem: {serverUsage.memory_usage.toFixed(2)}%</span>
               {serverUsage.gpu_name && (
                 <>
-                  {serverUsage.gpu_usage !== null && <span className="font-semibold w-1/2 sm:w-auto">GPU Usage: {serverUsage.gpu_usage.toFixed(2)}%</span>}
-                  {serverUsage.vram_usage !== null && <span className="font-semibold w-1/2 sm:w-auto">VRAM: {serverUsage.vram_usage.toFixed(2)}%</span>}
+                  {serverUsage.gpu_usage !== null && <span className="w-1/2">GPU: {serverUsage.gpu_usage.toFixed(2)}%</span>}
+                  {serverUsage.vram_usage !== null && <span className="w-1/2">VRAM: {serverUsage.vram_usage.toFixed(2)}%</span>}
                 </>
               )}
             </div>
@@ -280,12 +280,12 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
                 ))}
               </div>
             )}
-            <div className="flex items-center space-x-2 bg-white border border-gray-300 rounded-md p-2">
+            <div className="flex items-center space-x-1 sm:space-x-2 bg-white border border-gray-300 rounded-md p-1 sm:p-2">
               <SystemPromptDialog onSetSystemPrompt={handleSetSystemPrompt}>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-gray-600 hover:text-gray-800"
+                  className="text-gray-600 hover:text-gray-800 p-1"
                 >
                   <Sliders className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
@@ -302,7 +302,7 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-gray-600 hover:text-gray-800"
+                className="text-gray-600 hover:text-gray-800 p-1"
               >
                 <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
@@ -310,7 +310,7 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-gray-600 hover:text-gray-800"
+                className="text-gray-600 hover:text-gray-800 p-1"
               >
                 <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
@@ -318,22 +318,21 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
                 ref={inputRef}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onPaste={handlePaste}
-                placeholder="Use shift + return for new line"
+                placeholder="메시지를 입력하세요"
                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                className="flex-grow bg-transparent text-sm sm:text-base text-black placeholder-gray-400 focus:outline-none"
+                className="flex-grow bg-transparent text-xs sm:text-sm text-black placeholder-gray-400 focus:outline-none min-w-0"
                 disabled={disabled}
               />
               <Button 
                 onClick={handleSendMessage} 
                 disabled={isLoading || disabled}
-                className="bg-orange-600 hover:bg-orange-700 text-white rounded-md p-1 sm:p-2"
+                className="bg-orange-600 hover:bg-orange-700 text-white rounded-md p-1"
                 size="sm"
               >
                 <ArrowUp className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
+                </Button>
             </div>
           </div>
-        
         </CardContent>
       </Card>
       {showContentPanel && activeContent && (
