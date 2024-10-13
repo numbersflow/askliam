@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
@@ -163,7 +164,7 @@ app.mount("/api/v1", app_1)
 
 
 # CORS 설정
-allowed_origins = config.get('cors_origins')
+allowed_origins = os.getenv('CORS_ORIGINS', '*')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,

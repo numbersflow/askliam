@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import * as SliderPrimitive from "@radix-ui/react-slider"
 
@@ -13,14 +11,14 @@ const Slider = React.forwardRef<
     {...props}
   >
     <SliderPrimitive.Track
-      className="relative h-2 w-full grow overflow-hidden rounded-full bg-gray-200"
+      className="relative h-2 w-full grow overflow-hidden rounded-full bg-blue-100"
     >
-      <SliderPrimitive.Range className="absolute h-full bg-blue-400" />
+      <SliderPrimitive.Range className="absolute h-full bg-gradient-to-r from-blue-600 to-purple-600" />
     </SliderPrimitive.Track>
     <SliderPrimitive.Thumb
       className="
-        block h-5 w-5 rounded-full border-2 border-blue-400 bg-white
-        focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
+        block h-5 w-5 rounded-full border-2 border-purple-600 bg-white
+        focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2
         disabled:pointer-events-none disabled:opacity-50
       "
     />

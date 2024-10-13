@@ -1,8 +1,7 @@
 import React, { useRef, useState, ReactNode, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Button } from "../ui/button"
-import { Loader, Paperclip, Sliders, Bot, Settings, Image as ImageIcon, ArrowUp } from 'lucide-react'
+import { Loader, Paperclip, Sliders, Bot, Settings, Image as ImageIcon, ArrowUp, Info } from 'lucide-react'
 import { SystemPromptDialog } from './SystemPromptDialog'
 import { MessageContent, ChatMessage, InferenceSettings } from './types'
 import { Dialog, DialogContent } from "../ui/dialog"
@@ -12,6 +11,7 @@ import { sendMessage } from '../../hook/useChat'
 import { ContentPanel } from './ContentPanel'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { ModelInfoDialog } from './ModelInfoDialog'
 
 interface ChatInterfaceProps {
   disabled: boolean;
@@ -21,6 +21,7 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
   const [sessionId, setSessionId] = useState<string>('')
   const [newMessage, setNewMessage] = useState('')
   const [showSettings, setShowSettings] = useState(false)
+  const [showModelInfo, setShowModelInfo] = useState(false)
   const [pastedImages, setPastedImages] = useState<string[]>([])
   const [showContentPanel, setShowContentPanel] = useState(false)
   const [activeContent, setActiveContent] = useState<MessageContent | null>(null)
@@ -205,28 +206,40 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
   }, [chatMessages]);
 
   return (
-    <div className="flex flex-col lg:flex-row w-full h-full">
-      <Card className={`h-full flex flex-col shadow-lg ${showContentPanel ? 'lg:w-2/3' : 'w-full'} transition-all duration-300`}>
-        <CardHeader className="pb-2 bg-gradient-to-r from-primary to-primary-dark flex items-center justify-between">
-          <div className="flex items-center w-full">
-            <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">Chat</CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSettings(true)}
-              className="ml-2 text-gray-800 hover:text-primary-dark transition-all duration-300 transform hover:scale-110 hover:rotate-180 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 animate-pulse"
-            >
-              <Settings className="h-5 w-5 sm:h-6 sm:w-6" />
-            </Button>
+    <div className="flex flex-col lg:flex-row w-full h-full bg-gray-100 p-4">
+      <div className={`h-full flex flex-col ${showContentPanel ? 'lg:w-2/3' : 'w-full'} transition-all duration-300`}>
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 rounded-t-lg shadow-md border border-blue-400">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-white drop-shadow-md tracking-wide">Ask Liam</h1>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowModelInfo(true)}
+                className="text-white border-white hover:bg-white/20 transition-colors duration-200"
+              >
+                <Info className="h-4 w-4 mr-2" />
+                Model Info
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSettings(true)}
+                className="text-white border-white hover:bg-white/20 transition-colors duration-200"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent className="flex-grow flex flex-col p-2 sm:p-4 space-y-2 sm:space-y-4">
+        </div>
+        <div className="flex-grow flex flex-col bg-white rounded-b-lg shadow-md border border-gray-200 p-2 space-y-2 sm:space-y-4">
           <div 
             ref={chatContainerRef} 
-            className="flex-grow overflow-y-auto p-2 sm:p-4 border rounded-md bg-gray-50 shadow-inner"
-            style={{ height: '60vh', maxHeight: '700px' }}  
+            className="flex-grow overflow-y-auto p-2 sm:p-4 bg-white border border-gray-200 rounded-lg shadow-md"
+            style={{ height: 'calc(100vh - 180px)', minHeight: '500px' }}  
           >
-            <div className="sticky top-0 bg-blue-500 p-1 sm:p-2 mb-2 rounded-md shadow-md text-xs text-white flex flex-wrap justify-between items-center">
+            <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-purple-600 p-1 sm:p-2 mb-2 rounded-md shadow-md text-xs text-white flex flex-wrap justify-between items-center">
               {serverUsage.gpu_name && (
                 <span className="font-semibold w-full mb-1">GPU: {serverUsage.gpu_name}</span>
               )}
@@ -280,7 +293,7 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
                 ))}
               </div>
             )}
-            <div className="flex items-center space-x-1 sm:space-x-2 bg-white border border-gray-300 rounded-md p-1 sm:p-2">
+            <div className="flex items-center space-x-1 sm:space-x-2 bg-gray-50 border border-gray-300 rounded-md p-1 sm:p-2 shadow-sm">
               <SystemPromptDialog onSetSystemPrompt={handleSetSystemPrompt}>
                 <Button 
                   variant="ghost" 
@@ -316,7 +329,7 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
               </Button>
               <input
                 ref={inputRef}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={(e) =>    setNewMessage(e.target.value)}
                 onPaste={handlePaste}
                 placeholder="메시지를 입력하세요"
                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
@@ -326,15 +339,15 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
               <Button 
                 onClick={handleSendMessage} 
                 disabled={isLoading || disabled}
-                className="bg-orange-600 hover:bg-orange-700 text-white rounded-md p-1"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-md p-1"
                 size="sm"
               >
                 <ArrowUp className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Button>
+              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
       {showContentPanel && activeContent && (
         <ContentPanel 
           content={activeContent} 
@@ -345,16 +358,15 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
         />
       )}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden">
-          <div className="p-4 sm:p-6 bg-white">
-            <InferenceSettingsComponent
-              settings={inferenceSettings}
-              onSettingsChange={(newSettings) => setInferenceSettings({ ...inferenceSettings, ...newSettings })}
-              disabled={disabled}
-            />
-          </div>
+        <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+          <InferenceSettingsComponent
+            settings={inferenceSettings}
+            onSettingsChange={(newSettings) => setInferenceSettings({ ...inferenceSettings, ...newSettings })}
+            disabled={disabled}
+          />
         </DialogContent>
       </Dialog>
+      <ModelInfoDialog isOpen={showModelInfo} onClose={() => setShowModelInfo(false)} />
     </div>
   )
 }

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Switch } from "../ui/switch"
 import { Slider } from "../ui/slider"
 import { Label } from "../ui/label"
@@ -7,6 +6,7 @@ import { Input } from "../ui/input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { InfoCircledIcon } from '@radix-ui/react-icons'
+
 
 type InferenceSettingsType = {
   temperature: number;
@@ -146,7 +146,7 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
     const { min, max, step } = getSettingProps(key);
     const value = localSettings[key];
     return (
-      <div key={key} className="space-y-2 bg-gray-50 p-2 sm:p-3 rounded-lg">
+      <div key={key} className="space-y-2">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
           <TooltipProvider>
             <Tooltip>
@@ -165,7 +165,7 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
             id={`${key}-input`}
             value={value.toString()}
             onChange={(e) => handleInputChange(e, key, min, max)}
-            className="w-full sm:w-[4.146rem] text-right bg-gray-200 border-gray-300 text-base sm:text-lg" 
+            className="w-full sm:w-[4.146rem] text-right bg-gray-100 border-gray-200 text-base sm:text-lg" 
             step={step}
             min={min}
             max={max}
@@ -187,7 +187,7 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
   }
 
   const renderBooleanSetting = (key: BooleanSetting) => (
-    <div key={key} className="flex items-center justify-between space-x-2 sm:space-x-4 bg-gray-50 p-2 sm:p-4 rounded-lg">
+    <div key={key} className="flex items-center justify-between space-x-2 sm:space-x-4">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -211,50 +211,46 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
   )
 
   return (
-    <Card className="bg-gray-100 text-card-foreground w-full max-w-3xl mx-auto">
-      <CardHeader className="bg-white">
-        <CardTitle className="text-xl sm:text-2xl font-bold">AI Text Generation Settings</CardTitle>
-      </CardHeader>
-      <CardContent className="bg-white p-2 sm:p-4">
-        <Tabs defaultValue="sampling" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-w-2xl mx-auto mb-4">
-            <TabsTrigger value="sampling" className="text-sm sm:text-base">Sampling</TabsTrigger>
-            <TabsTrigger value="tokens" className="text-sm sm:text-base">Tokens</TabsTrigger>
-            <TabsTrigger value="repetition" className="text-sm sm:text-base">Repetition</TabsTrigger>
-            <TabsTrigger value="misc" className="text-sm sm:text-base">Misc</TabsTrigger>
-          </TabsList>
-          <div className="h-[60vh] sm:h-[600px] overflow-y-auto">
-            <TabsContent value="sampling" className="space-y-2 sm:space-y-4 mt-2 sm:mt-4">
-              {renderNumberSetting('temperature')}
-              {renderNumberSetting('top_k')}
-              {renderNumberSetting('top_p')}
-              {renderNumberSetting('min_p')}
-              {renderNumberSetting('tfs_z')}
-              {renderNumberSetting('typical_p')}
-            </TabsContent>
-            <TabsContent value="tokens" className="space-y-2 sm:space-y-4 mt-2 sm:mt-4">
-              {renderNumberSetting('n_predict')}
-              {renderNumberSetting('n_keep')}
-              {renderBooleanSetting('ignore_eos')}
-            </TabsContent>
-            <TabsContent value="repetition" className="space-y-2 sm:space-y-4 mt-2 sm:mt-4">
-              {renderNumberSetting('repeat_penalty')}
-              {renderNumberSetting('repeat_last_n')}
-              {renderNumberSetting('presence_penalty')}
-              {renderNumberSetting('frequency_penalty')}
-              {renderBooleanSetting('penalize_nl')}
-            </TabsContent>
-            <TabsContent value="misc" className="space-y-2 sm:space-y-4 mt-2 sm:mt-4">
-              {renderNumberSetting('mirostat')}
-              {renderNumberSetting('mirostat_tau')}
-              {renderNumberSetting('mirostat_eta')}
-              {renderNumberSetting('seed')}
-              {renderBooleanSetting('stream')}
-              {renderBooleanSetting('cache_prompt')}
-            </TabsContent>
-          </div>
-        </Tabs>
-      </CardContent>
-    </Card>
+    <div className="w-full max-w-3xl mx-auto p-4 sm:p-6">
+      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">AI Text Generation Settings</h2>
+      <Tabs defaultValue="sampling" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-w-2xl mx-auto mb-4">
+          <TabsTrigger value="sampling" className="text-sm sm:text-base">Sampling</TabsTrigger>
+          <TabsTrigger value="tokens" className="text-sm sm:text-base">Tokens</TabsTrigger>
+          <TabsTrigger value="repetition" className="text-sm sm:text-base">Repetition</TabsTrigger>
+          <TabsTrigger value="misc" className="text-sm sm:text-base">Misc</TabsTrigger>
+        </TabsList>
+        <div className="h-[60vh] sm:h-[600px] overflow-y-auto pr-2">
+          <TabsContent value="sampling" className="space-y-4 mt-4">
+            {renderNumberSetting('temperature')}
+            {renderNumberSetting('top_k')}
+            {renderNumberSetting('top_p')}
+            {renderNumberSetting('min_p')}
+            {renderNumberSetting('tfs_z')}
+            {renderNumberSetting('typical_p')}
+          </TabsContent>
+          <TabsContent value="tokens" className="space-y-4 mt-4">
+            {renderNumberSetting('n_predict')}
+            {renderNumberSetting('n_keep')}
+            {renderBooleanSetting('ignore_eos')}
+          </TabsContent>
+          <TabsContent value="repetition" className="space-y-4 mt-4">
+            {renderNumberSetting('repeat_penalty')}
+            {renderNumberSetting('repeat_last_n')}
+            {renderNumberSetting('presence_penalty')}
+            {renderNumberSetting('frequency_penalty')}
+            {renderBooleanSetting('penalize_nl')}
+          </TabsContent>
+          <TabsContent value="misc" className="space-y-4 mt-4">
+            {renderNumberSetting('mirostat')}
+            {renderNumberSetting('mirostat_tau')}
+            {renderNumberSetting('mirostat_eta')}
+            {renderNumberSetting('seed')}
+            {renderBooleanSetting('stream')}
+            {renderBooleanSetting('cache_prompt')}
+          </TabsContent>
+        </div>
+      </Tabs>
+    </div>
   )
 }

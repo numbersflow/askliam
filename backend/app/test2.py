@@ -1,10 +1,10 @@
 import requests
 import json
 
-def test_server_metrics_api(url="http://localhost:8000/api/v1/metrics"):
+def test_server_metrics_api(url="http://localhost:8081/metrics"):
     try:
         # API에 GET 요청 보내기
-        response = requests.get(url)
+        response = requests.get(url)    
         
         # 응답 상태 코드 확인
         if response.status_code == 200:

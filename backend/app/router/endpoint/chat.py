@@ -8,10 +8,12 @@ from typing import Optional, List
 import json
 import re
 import redis
-import base64
 
-app = FastAPI()
+from app.core.settings import ENVIRONMENT
+
 router = APIRouter()
+
+
 
 # Redis 클라이언트 설정
 REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379')
@@ -19,7 +21,10 @@ redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 
 # LLAMA 서버 URL 설정
 SERVER_URL = os.getenv('LLAMA_SERVER_URL', 'http://llamacpp-server-gpu:8081')
-LLAMA_SERVER_URL = f'{SERVER_URL}/completion'
+if ENVIRONMENT == 'dev':
+    LLAMA_SERVER_URL = SERVER_URL
+else:
+    LLAMA_SERVER_URL = f'{SERVER_URL}/completion'
 
 class ImageData(BaseModel):
     data: str

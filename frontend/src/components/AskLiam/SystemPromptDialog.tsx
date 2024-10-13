@@ -36,7 +36,7 @@ export function SystemPromptDialog({ children, onSetSystemPrompt }: SystemPrompt
         </div>
         <Button 
           onClick={handleSetPrompt} 
-          className="w-full text-base sm:text-lg py-4 sm:py-6 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+          className="w-full text-base sm:text-lg py-4 sm:py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-md transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
         >
           Set Prompt
         </Button>
