@@ -1,3 +1,5 @@
 cors_origins:
+  - "http://llm.pocketjob.co.kr"
+  - "http://www.llm.pocketjob.co.kr"
   - "https://llm.pocketjob.co.kr"
   - "https://www.llm.pocketjob.co.kr"
