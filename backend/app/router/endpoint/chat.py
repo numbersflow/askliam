@@ -5,9 +5,10 @@ import httpx
 import asyncio
 from pydantic import BaseModel
 from typing import Optional, List
+import json
 import re
 import redis
-import json
+import base64
 
 app = FastAPI()
 router = APIRouter()
@@ -99,12 +100,7 @@ class ChatSession:
 
 async def fetch_llama_stream(data: CompletionRequest, chat_session: ChatSession):
     async with httpx.AsyncClient() as client:
-        # 이미지 데이터가 있는 경우, 프롬프트에 이미지 참조 추가
-        if data.image_data:
-            for img in data.image_data:
-                data.prompt = data.prompt.replace(f"[IMAGE{img.id}]", f"[img-{img.id}]")
-
-        request_data = data.dict()
+        request_data = data.dict(exclude_unset=True)
         
         # 이미지 데이터가 있는 경우에만 image_data 필드 포함
         if data.image_data:
