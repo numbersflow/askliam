@@ -4,8 +4,19 @@ import { InferenceSettings } from '../components/AskLiam/types';
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://114.110.135.85:8080';
 const API_URL = `${BASE_URL}/api/v1`;
 
+interface ImageData {
+  data: string;
+  id: number;
+}
+
 export async function sendMessage(message: string, images: string[], settings: InferenceSettings, systemPrompt: string, sessionId: string): Promise<ReadableStream<Uint8Array> | null> {
   try {
+
+    const imageData: ImageData[] = images.map((image, index) => ({
+      data: image,
+      id: index + 1
+    }));
+
     const response = await fetch(`${API_URL}/generate`, {
       method: 'POST',
       headers: {
@@ -15,7 +26,7 @@ export async function sendMessage(message: string, images: string[], settings: I
         prompt: message,
         system_prompt: systemPrompt,
         session_id: sessionId,
-        images,  // 이미지 데이터 추가
+        image_data: imageData,
         ...settings,
       }),
     });

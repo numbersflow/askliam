@@ -57,10 +57,8 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
   });
 
   useEffect(() => {
-    // Generate a session ID when the component mounts
     const newSessionId = uuidv4()
     setSessionId(newSessionId)
-    // You might want to store this in localStorage or a cookie for persistence
     localStorage.setItem('chatSessionId', newSessionId)
   }, [])
 
@@ -207,48 +205,48 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
   }, [chatMessages]);
 
   return (
-    <div className="flex w-full h-full">
-      <Card className={`h-full flex flex-col shadow-lg ${showContentPanel ? 'w-2/3' : 'w-full'} transition-all duration-300`}>
+    <div className="flex flex-col lg:flex-row w-full h-full">
+      <Card className={`h-full flex flex-col shadow-lg ${showContentPanel ? 'lg:w-2/3' : 'w-full'} transition-all duration-300`}>
         <CardHeader className="pb-2 bg-gradient-to-r from-primary to-primary-dark flex items-center justify-between">
           <div className="flex items-center w-full">
-            <CardTitle className="text-2xl font-bold text-gray-800">Chat</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">Chat</CardTitle>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowSettings(true)}
               className="ml-2 text-gray-800 hover:text-primary-dark transition-all duration-300 transform hover:scale-110 hover:rotate-180 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 animate-pulse"
             >
-              <Settings className="h-6 w-6" />
+              <Settings className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="flex-grow flex flex-col p-4 space-y-4">
+        <CardContent className="flex-grow flex flex-col p-2 sm:p-4 space-y-2 sm:space-y-4">
           <div 
             ref={chatContainerRef} 
-            className="flex-grow overflow-y-auto p-6 border rounded-md bg-gray-50 shadow-inner"
-            style={{ height: '700px' }}  
+            className="flex-grow overflow-y-auto p-2 sm:p-4 border rounded-md bg-gray-50 shadow-inner"
+            style={{ height: '60vh', maxHeight: '700px' }}  
           >
-            <div className="sticky top-0 bg-blue-500 p-4 mb-4 rounded-md shadow-md text-sm text-white flex justify-between items-center">
+            <div className="sticky top-0 bg-blue-500 p-2 sm:p-4 mb-2 sm:mb-4 rounded-md shadow-md text-xs sm:text-sm text-white flex flex-wrap justify-between items-center">
               {serverUsage.gpu_name && (
-                <span className="font-semibold">GPU: {serverUsage.gpu_name}</span>
+                <span className="font-semibold w-full sm:w-auto mb-1 sm:mb-0">GPU: {serverUsage.gpu_name}</span>
               )}
-              <span className="font-semibold">CPU: {serverUsage.cpu_usage.toFixed(2)}%</span>
-              <span className="font-semibold">Memory: {serverUsage.memory_usage.toFixed(2)}%</span>
+              <span className="font-semibold w-1/2 sm:w-auto">CPU: {serverUsage.cpu_usage.toFixed(2)}%</span>
+              <span className="font-semibold w-1/2 sm:w-auto">Memory: {serverUsage.memory_usage.toFixed(2)}%</span>
               {serverUsage.gpu_name && (
                 <>
-                  {serverUsage.gpu_usage !== null && <span className="font-semibold">GPU Usage: {serverUsage.gpu_usage.toFixed(2)}%</span>}
-                  {serverUsage.vram_usage !== null && <span className="font-semibold">VRAM: {serverUsage.vram_usage.toFixed(2)}%</span>}
+                  {serverUsage.gpu_usage !== null && <span className="font-semibold w-1/2 sm:w-auto">GPU Usage: {serverUsage.gpu_usage.toFixed(2)}%</span>}
+                  {serverUsage.vram_usage !== null && <span className="font-semibold w-1/2 sm:w-auto">VRAM: {serverUsage.vram_usage.toFixed(2)}%</span>}
                 </>
               )}
             </div>
             {chatMessages.map((msg, index) => (
-              <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}>
+              <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-2 sm:mb-4`}>
                 {msg.role === 'assistant' && (
                   <div className="mr-2 flex-shrink-0">
-                    <Bot className="h-6 w-6 text-primary" />
+                    <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                   </div>
                 )}
-                <div className={`max-w-[70%] p-3 rounded-lg shadow-md ${
+                <div className={`max-w-[85%] sm:max-w-[70%] p-2 sm:p-3 rounded-lg shadow-md ${
                   msg.role === 'user' 
                     ? 'bg-blue-100' 
                     : 'bg-gray-100 border border-gray-300'
@@ -262,7 +260,7 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
             ))}
             {isLoading && (
               <div className="flex justify-center items-center">
-                <Loader className="animate-spin h-6 w-6 text-primary" />
+                <Loader className="animate-spin h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
             )}
           </div>
@@ -271,12 +269,12 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
               <div className="flex flex-wrap gap-2 p-2 bg-gray-100 rounded-md">
                 {pastedImages.map((img, index) => (
                   <div key={index} className="relative">
-                    <img src={img} alt={`Pasted ${index + 1}`} className="w-20 h-20 object-cover rounded-md" />
+                    <img src={img} alt={`Pasted ${index + 1}`} className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-md" />
                     <button
                       onClick={() => handleImageDelete(index)}
                       className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 transform translate-x-1/2 -translate-y-1/2"
                     >
-                      <Loader  className="h-4 w-4" />
+                      <Loader className="h-3 w-3 sm:h-4 sm:w-4" />
                     </button>
                   </div>
                 ))}
@@ -289,7 +287,7 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
                   size="sm" 
                   className="text-gray-600 hover:text-gray-800"
                 >
-                  <Sliders className="h-5 w-5" />
+                  <Sliders className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </SystemPromptDialog>
               <input
@@ -306,7 +304,7 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
                 onClick={() => fileInputRef.current?.click()}
                 className="text-gray-600 hover:text-gray-800"
               >
-                <Paperclip className="h-5 w-5" />
+                <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -314,7 +312,7 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
                 onClick={() => fileInputRef.current?.click()}
                 className="text-gray-600 hover:text-gray-800"
               >
-                <ImageIcon className="h-5 w-5" />
+                <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
               <input
                 ref={inputRef}
@@ -322,16 +320,16 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
                 onPaste={handlePaste}
                 placeholder="Use shift + return for new line"
                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                className="flex-grow bg-transparent text-black placeholder-gray-400 focus:outline-none"
+                className="flex-grow bg-transparent text-sm sm:text-base text-black placeholder-gray-400 focus:outline-none"
                 disabled={disabled}
               />
               <Button 
                 onClick={handleSendMessage} 
                 disabled={isLoading || disabled}
-                className="bg-orange-600 hover:bg-orange-700 text-white rounded-md p-2"
+                className="bg-orange-600 hover:bg-orange-700 text-white rounded-md p-1 sm:p-2"
                 size="sm"
               >
-                <ArrowUp className="h-5 w-5" />
+                <ArrowUp className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
           </div>
@@ -349,7 +347,7 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
       )}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden">
-          <div className="p-6 bg-white">
+          <div className="p-4 sm:p-6 bg-white">
             <InferenceSettingsComponent
               settings={inferenceSettings}
               onSettingsChange={(newSettings) => setInferenceSettings({ ...inferenceSettings, ...newSettings })}

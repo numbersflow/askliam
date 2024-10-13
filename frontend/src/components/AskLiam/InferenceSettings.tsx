@@ -146,16 +146,16 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
     const { min, max, step } = getSettingProps(key);
     const value = localSettings[key];
     return (
-      <div key={key} className="space-y-2 bg-gray-50 p-3 rounded-lg">
-        <div className="flex justify-between items-center">
+      <div key={key} className="space-y-2 bg-gray-50 p-2 sm:p-3 rounded-lg">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Label htmlFor={key} className="flex items-center cursor-help text-lg">
-                  {key} <InfoCircledIcon className="ml-1 h-5 w-5 text-muted-foreground" />
+                <Label htmlFor={key} className="flex items-center cursor-help text-base sm:text-lg mb-1 sm:mb-0">
+                  {key} <InfoCircledIcon className="ml-1 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                 </Label>
               </TooltipTrigger>
-              <TooltipContent side="top" className="bg-popover text-popover-foreground">
+              <TooltipContent side="top" className="bg-popover text-popover-foreground text-sm sm:text-base">
                 <p>{tooltips[key]}</p>
               </TooltipContent>
             </Tooltip>
@@ -165,7 +165,7 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
             id={`${key}-input`}
             value={value.toString()}
             onChange={(e) => handleInputChange(e, key, min, max)}
-            className="w-[4.146rem] text-right bg-gray-200 border-gray-300 text-lg" 
+            className="w-full sm:w-[4.146rem] text-right bg-gray-200 border-gray-300 text-base sm:text-lg" 
             step={step}
             min={min}
             max={max}
@@ -187,15 +187,15 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
   }
 
   const renderBooleanSetting = (key: BooleanSetting) => (
-    <div key={key} className="flex items-center justify-between space-x-4 bg-gray-50 p-4 rounded-lg">
+    <div key={key} className="flex items-center justify-between space-x-2 sm:space-x-4 bg-gray-50 p-2 sm:p-4 rounded-lg">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Label htmlFor={key} className="flex items-center cursor-help text-lg">
-              {key} <InfoCircledIcon className="ml-1 h-5 w-5 text-muted-foreground" />
+            <Label htmlFor={key} className="flex items-center cursor-help text-base sm:text-lg">
+              {key} <InfoCircledIcon className="ml-1 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             </Label>
           </TooltipTrigger>
-          <TooltipContent side="top" className="bg-popover text-popover-foreground">
+          <TooltipContent side="top" className="bg-popover text-popover-foreground text-sm sm:text-base">
             <p>{tooltips[key]}</p>
           </TooltipContent>
         </Tooltip>
@@ -204,27 +204,27 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
         id={key}
         checked={localSettings[key]}
         onCheckedChange={(checked) => handleSettingChange(key, checked)}
-        className="data-[state=checked]:bg-primary h-8 w-14 [&>span]:h-7 [&>span]:w-7"
+        className="data-[state=checked]:bg-primary h-6 w-11 sm:h-8 sm:w-14 [&>span]:h-5 [&>span]:w-5 sm:[&>span]:h-7 sm:[&>span]:w-7"
         disabled={disabled}
       />
     </div>
   )
 
   return (
-    <Card className="bg-gray-100 text-card-foreground max-w-3xl mx-auto">
+    <Card className="bg-gray-100 text-card-foreground w-full max-w-3xl mx-auto">
       <CardHeader className="bg-white">
-        <CardTitle className="text-2xl font-bold">AI Text Generation Settings</CardTitle>
+        <CardTitle className="text-xl sm:text-2xl font-bold">AI Text Generation Settings</CardTitle>
       </CardHeader>
-      <CardContent className="bg-white">
+      <CardContent className="bg-white p-2 sm:p-4">
         <Tabs defaultValue="sampling" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-4">
-            <TabsTrigger value="sampling">Sampling</TabsTrigger>
-            <TabsTrigger value="tokens">Tokens</TabsTrigger>
-            <TabsTrigger value="repetition">Repetition</TabsTrigger>
-            <TabsTrigger value="misc">Misc</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-w-2xl mx-auto mb-4">
+            <TabsTrigger value="sampling" className="text-sm sm:text-base">Sampling</TabsTrigger>
+            <TabsTrigger value="tokens" className="text-sm sm:text-base">Tokens</TabsTrigger>
+            <TabsTrigger value="repetition" className="text-sm sm:text-base">Repetition</TabsTrigger>
+            <TabsTrigger value="misc" className="text-sm sm:text-base">Misc</TabsTrigger>
           </TabsList>
-          <div className="h-[600px] overflow-y-auto">
-            <TabsContent value="sampling" className="space-y-4 mt-4">
+          <div className="h-[60vh] sm:h-[600px] overflow-y-auto">
+            <TabsContent value="sampling" className="space-y-2 sm:space-y-4 mt-2 sm:mt-4">
               {renderNumberSetting('temperature')}
               {renderNumberSetting('top_k')}
               {renderNumberSetting('top_p')}
@@ -232,19 +232,19 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
               {renderNumberSetting('tfs_z')}
               {renderNumberSetting('typical_p')}
             </TabsContent>
-            <TabsContent value="tokens" className="space-y-4 mt-4">
+            <TabsContent value="tokens" className="space-y-2 sm:space-y-4 mt-2 sm:mt-4">
               {renderNumberSetting('n_predict')}
               {renderNumberSetting('n_keep')}
               {renderBooleanSetting('ignore_eos')}
             </TabsContent>
-            <TabsContent value="repetition" className="space-y-4 mt-4">
+            <TabsContent value="repetition" className="space-y-2 sm:space-y-4 mt-2 sm:mt-4">
               {renderNumberSetting('repeat_penalty')}
               {renderNumberSetting('repeat_last_n')}
               {renderNumberSetting('presence_penalty')}
               {renderNumberSetting('frequency_penalty')}
               {renderBooleanSetting('penalize_nl')}
             </TabsContent>
-            <TabsContent value="misc" className="space-y-4 mt-4">
+            <TabsContent value="misc" className="space-y-2 sm:space-y-4 mt-2 sm:mt-4">
               {renderNumberSetting('mirostat')}
               {renderNumberSetting('mirostat_tau')}
               {renderNumberSetting('mirostat_eta')}
