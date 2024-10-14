@@ -146,7 +146,7 @@ export function ModelInfoDialog({ isOpen, onClose }: ModelInfoDialogProps) {
                 </TableBody>
               </Table>
               <p className="text-xs text-gray-500 mt-2">
-              참고: 벤치마크 성능 서버의 자원현황에 따라 수치가 변할 수 있습니다.
+              참고: 벤치마크 성능은 서버의 자원현황에 따라 수치가 변할 수 있습니다.
               </p>
             </CardContent>
           </Card>
@@ -162,7 +162,7 @@ export function ModelInfoDialog({ isOpen, onClose }: ModelInfoDialogProps) {
                     <TableHead className="font-semibold">카테고리</TableHead>
                     <TableHead className="font-semibold">벤치마크</TableHead>
                     <TableHead className="font-semibold">EXAONE 3.0 7.8B Inst.</TableHead>
-                    <TableHead className="font-semibold">양자화 버전 (추정)</TableHead>
+                    <TableHead className="font-semibold">양자화 버전</TableHead>
                     <TableHead className="font-semibold">성능 변화</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -227,7 +227,7 @@ export function ModelInfoDialog({ isOpen, onClose }: ModelInfoDialogProps) {
                 </TableBody>
                 </Table>
                 <p className="text-xs text-gray-500 mt-2">
-                참고: 벤치마크 성능 서버의 자원현황에 따라 수치가 변할 수 있습니다.
+                참고: 벤치마크 성능은 서버의 자원현황에 따라 수치가 변할 수 있습니다.
                 </p>
             </CardContent>
             </Card>
