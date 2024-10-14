@@ -1,5 +1,4 @@
 import psutil
-import torch
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
@@ -28,14 +27,20 @@ async def get_server_metrics():
     gpu_usage = None
     vram_usage = None
     
-    if torch.cuda.is_available():
+    try:
         pynvml.nvmlInit()
         handle = pynvml.nvmlDeviceGetHandleByIndex(0)
         gpu_name = pynvml.nvmlDeviceGetName(handle).decode('utf-8')
         utilization = pynvml.nvmlDeviceGetUtilizationRates(handle)
         gpu_usage = utilization.gpu
-        vram_usage = round(pynvml.nvmlDeviceGetMemoryInfo(handle).used / pynvml.nvmlDeviceGetMemoryInfo(handle).total * 100, 2)
-        pynvml.nvmlShutdown()
+        memory_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+        vram_usage = round(memory_info.used / memory_info.total * 100, 2)
+    except pynvml.NVMLError:
+        # GPU를 찾을 수 없거나 NVIDIA 드라이버가 설치되지 않은 경우
+        pass
+    finally:
+        if pynvml.nvmlShutdown:
+            pynvml.nvmlShutdown()
     
     return ServerMetrics(
         cpu_usage=cpu_usage,
