@@ -66,8 +66,6 @@ class ChatSession:
         if role == "system":
             conversation["system"] = content
         else:
-            if "messages" not in conversation:
-                conversation["messages"] = []
             conversation["messages"].append({"role": role, "content": content})
         
         redis_client.set(self.session_id, json.dumps(conversation))
@@ -82,12 +80,11 @@ class ChatSession:
             
             prompt = f"system: {system_prompt}\n\n"
             
-            # 가장 최근의 대화 메시지 하나만 사용
-            if messages:
-                last_message = messages[-1]
-                role = "user" if last_message["role"] == "user" else "assistant"
-                # 메시지를 100자까지만 잘라서 사용
-                content = last_message["content"][:100]
+            # 최대 5개의 최근 메시지를 포함
+            recent_messages = messages[-2:]
+            for message in recent_messages:
+                role = message["role"]
+                content = message["content"]
                 prompt += f"{role}: {content}\n"
         else:
             prompt = ""
@@ -123,7 +120,6 @@ async def fetch_llama_stream(data: CompletionRequest, chat_session: ChatSession)
 
 @router.post("/generate")
 async def generate(request: CompletionRequest):
-    # 세션 ID를 사용하여 ChatSession 생성
     session_id = request.session_id
     print(session_id)
     chat_session = ChatSession(session_id)
@@ -132,11 +128,11 @@ async def generate(request: CompletionRequest):
     if request.system_prompt:
         chat_session.add_message("system", request.system_prompt)
     
-    # 현재 질문을 추가하기 전에 프롬프트 생성
-    full_prompt = chat_session.get_full_prompt(request.prompt)
-    
     # 현재 질문을 대화에 추가
     chat_session.add_message("user", request.prompt)
+    
+    # 현재 질문을 추가한 후에 프롬프트 생성
+    full_prompt = chat_session.get_full_prompt(request.prompt)
     
     # 프롬프트를 요청에 설정
     request.prompt = full_prompt
