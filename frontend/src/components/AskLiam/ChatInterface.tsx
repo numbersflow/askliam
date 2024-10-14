@@ -17,7 +17,7 @@ interface ChatInterfaceProps {
   disabled: boolean;
 }
 
-export default function ChatInterface({ disabled }: ChatInterfaceProps) {
+export default function Component({ disabled }: ChatInterfaceProps) {
   const [sessionId, setSessionId] = useState<string>('')
   const [newMessage, setNewMessage] = useState('')
   const [showSettings, setShowSettings] = useState(false)
@@ -206,145 +206,144 @@ export default function ChatInterface({ disabled }: ChatInterfaceProps) {
   }, [chatMessages]);
 
   return (
-    <div className="flex flex-col lg:flex-row w-full h-full bg-gray-100 p-4">
-      <div className={`h-full flex flex-col ${showContentPanel ? 'lg:w-2/3' : 'w-full'} transition-all duration-300`}>
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 rounded-t-lg shadow-md border border-blue-400">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-white drop-shadow-md tracking-wide">Ask Liam</h1>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowModelInfo(true)}
-                className="text-white border-white hover:bg-white/20 transition-colors duration-200"
-              >
-                <Info className="h-4 w-4 mr-2" />
-                Model Info
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSettings(true)}
-                className="text-white border-white hover:bg-white/20 transition-colors duration-200"
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-            </div>
+    <div className="flex flex-col w-full h-full bg-gray-100">
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-t-lg shadow-md border border-blue-400">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-white drop-shadow-md tracking-wide">Ask Liam</h1>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowModelInfo(true)}
+              className="text-white border-white hover:bg-white/20 transition-colors duration-200"
+            >
+              <Info className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Model Info</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSettings(true)}
+              className="text-white border-white hover:bg-white/20 transition-colors duration-200"
+            >
+              <Settings className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Settings</span>
+            </Button>
           </div>
         </div>
-        <div className="flex-grow flex flex-col bg-white rounded-b-lg shadow-md border border-gray-200 p-2 space-y-2 sm:space-y-4">
-          <div 
-            ref={chatContainerRef} 
-            className="flex-grow overflow-y-auto p-2 sm:p-4 bg-white border border-gray-200 rounded-lg shadow-md"
-            style={{ height: 'calc(100vh - 180px)', minHeight: '500px' }}  
-          >
-            <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-purple-600 p-1 sm:p-2 mb-2 rounded-md shadow-md text-xs text-white flex flex-wrap justify-between items-center">
-              {serverUsage.gpu_name && (
-                <span className="font-semibold w-full mb-1">GPU: {serverUsage.gpu_name}</span>
-              )}
-              <span className="w-1/2">CPU: {serverUsage.cpu_usage.toFixed(2)}%</span>
-              <span className="w-1/2">Mem: {serverUsage.memory_usage.toFixed(2)}%</span>
-              {serverUsage.gpu_name && (
-                <>
-                  {serverUsage.gpu_usage !== null && <span className="w-1/2">GPU: {serverUsage.gpu_usage.toFixed(2)}%</span>}
-                  {serverUsage.vram_usage !== null && <span className="w-1/2">VRAM: {serverUsage.vram_usage.toFixed(2)}%</span>}
-                </>
-              )}
-            </div>
-            {chatMessages.map((msg, index) => (
-              <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-2 sm:mb-4`}>
-                {msg.role === 'assistant' && (
-                  <div className="mr-2 flex-shrink-0">
-                    <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                  </div>
-                )}
-                <div className={`max-w-[85%] sm:max-w-[70%] p-2 sm:p-3 rounded-lg shadow-md ${
-                  msg.role === 'user' 
-                    ? 'bg-blue-100' 
-                    : 'bg-gray-100 border border-gray-300'
-                }`}>
-                  {typeof msg.content === 'string' ? renderMessage(msg.content) : JSON.stringify(msg.content)}
-                  {msg.images && msg.images.map((img, imgIndex) => (
-                    <img key={imgIndex} src={img} alt={`Upload ${imgIndex + 1}`} className="mt-2 max-w-full h-auto rounded-md" />
-                  ))}
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-center items-center">
-                <Loader className="animate-spin h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              </div>
+      </div>
+      <div className="flex-grow flex flex-col bg-white rounded-b-lg shadow-md border border-gray-200">
+        <div 
+          ref={chatContainerRef} 
+          className="flex-grow overflow-y-auto p-2 bg-white border-b border-gray-200"
+          style={{ height: 'calc(100vh - 120px)' }}
+        >
+          <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-purple-600 p-1 mb-2 rounded-md shadow-md text-xs text-white flex flex-wrap justify-between items-center">
+            {serverUsage.gpu_name && (
+              <span className="font-semibold w-full mb-1">GPU: {serverUsage.gpu_name}</span>
+            )}
+            <span className="w-1/2">CPU: {serverUsage.cpu_usage.toFixed(2)}%</span>
+            <span className="w-1/2">Mem: {serverUsage.memory_usage.toFixed(2)}%</span>
+            {serverUsage.gpu_name && (
+              <>
+                {serverUsage.gpu_usage !== null && <span className="w-1/2">GPU: {serverUsage.gpu_usage.toFixed(2)}%</span>}
+                {serverUsage.vram_usage !== null && <span className="w-1/2">VRAM: {serverUsage.vram_usage.toFixed(2)}%</span>}
+              </>
             )}
           </div>
-          <div className="flex flex-col space-y-2">
-            {pastedImages.length > 0 && (
-              <div className="flex flex-wrap gap-2 p-2 bg-gray-100 rounded-md">
-                {pastedImages.map((img, index) => (
-                  <div key={index} className="relative">
-                    <img src={img} alt={`Pasted ${index + 1}`} className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-md" />
-                    <button
-                      onClick={() => handleImageDelete(index)}
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 transform translate-x-1/2 -translate-y-1/2"
-                    >
-                      <Loader className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </button>
-                  </div>
+          {chatMessages.map((msg, index) => (
+            <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-2`}>
+              {msg.role === 'assistant' && (
+                <div className="mr-2 flex-shrink-0">
+                  <Bot className="h-5 w-5 text-primary" />
+                </div>
+              )}
+              <div className={`max-w-[85%] p-2 rounded-lg shadow-md ${
+                msg.role === 'user' 
+                  ? 'bg-blue-100' 
+                  : 'bg-gray-100 border border-gray-300'
+              }`}>
+                {typeof msg.content === 'string' ? renderMessage(msg.content) : JSON.stringify(msg.content)}
+                {msg.images && msg.images.map((img, imgIndex) => (
+                  <img key={imgIndex} src={img} alt={`Upload ${imgIndex + 1}`} className="mt-2 max-w-full h-auto rounded-md" />
                 ))}
               </div>
-            )}
-            <div className="flex items-center space-x-1 sm:space-x-2 bg-gray-50 border border-gray-300 rounded-md p-1 sm:p-2 shadow-sm">
-              <SystemPromptDialog onSetSystemPrompt={handleSetSystemPrompt}>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-gray-600 hover:text-gray-800 p-1"
-                >
-                  <Sliders className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Button>
-              </SystemPromptDialog>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                className="hidden"
-                accept="image/*"
-                multiple
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-                className="text-gray-600 hover:text-gray-800 p-1"
-              >
-                <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-                className="text-gray-600 hover:text-gray-800 p-1"
-              >
-                <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-              <input
-                ref={inputRef}
-                onChange={(e) =>    setNewMessage(e.target.value)}
-                onPaste={handlePaste}
-                placeholder="메시지를 입력하세요"
-                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                className="flex-grow bg-transparent text-xs sm:text-sm text-black placeholder-gray-400 focus:outline-none min-w-0"
-                disabled={disabled}
-              />
-              <Button 
-                onClick={handleSendMessage} 
-                disabled={isLoading || disabled}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-md p-1"
-                size="sm"
-              >
-                <ArrowUp className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
             </div>
+          ))}
+          {isLoading && (
+            <div className="flex justify-center items-center">
+              <Loader className="animate-spin h-5 w-5 text-primary" />
+            </div>
+          )}
+        </div>
+        <div className="p-2">
+          {pastedImages.length > 0 && (
+            <div className="flex flex-wrap gap-2 p-2 bg-gray-100 rounded-md mb-2">
+              {pastedImages.map((img, index) => (
+                <div key={index} className="relative">
+                  <img src={img} alt={`Pasted ${index + 1}`} className="w-16 h-16 object-cover rounded-md" />
+                  <button
+                    onClick={() => handleImageDelete(index)}
+                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 transform translate-x-1/2 -translate-y-1/2"
+                  >
+                    <Loader className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center space-x-1 bg-gray-50 border border-gray-300 rounded-md p-1 shadow-sm">
+            <SystemPromptDialog onSetSystemPrompt={handleSetSystemPrompt}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-600 hover:text-gray-800 p-1"
+              >
+                <Sliders className="h-4 w-4" />
+              </Button>
+            </SystemPromptDialog>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+              accept="image/*"
+              multiple
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="text-gray-600 hover:text-gray-800 p-1"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="text-gray-600 hover:text-gray-800 p-1"
+            >
+              <ImageIcon className="h-4 w-4" />
+            </Button>
+            <input
+              ref={inputRef}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onPaste={handlePaste}
+              placeholder="메시지를 입력하세요"
+              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+              className="flex-grow bg-transparent text-xs text-black placeholder-gray-400 focus:outline-none min-w-0"
+              disabled={disabled}
+            />
+            <Button 
+               
+              onClick={handleSendMessage} 
+              disabled={isLoading || disabled}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-md p-1"
+              size="sm"
+            >
+              <ArrowUp className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>

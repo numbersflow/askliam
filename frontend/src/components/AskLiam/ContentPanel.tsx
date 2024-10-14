@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Button } from "../ui/button"
 import { X } from 'lucide-react'
 import { MessageContent } from './types';
-import { renderContentPanel } from './MessageContent';
+import { renderContentPanel } from './MessageContent'
 
 interface ContentPanelProps {
   content: MessageContent;

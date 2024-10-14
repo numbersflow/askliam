@@ -6,7 +6,7 @@ import { Input } from "../ui/input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { InfoCircledIcon } from '@radix-ui/react-icons'
-
+import { ScrollArea } from "../ui/scroll-area"
 
 type InferenceSettingsType = {
   temperature: number;
@@ -151,11 +151,11 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Label htmlFor={key} className="flex items-center cursor-help text-base sm:text-lg mb-1 sm:mb-0">
-                  {key} <InfoCircledIcon className="ml-1 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                <Label htmlFor={key} className="flex items-center cursor-help text-sm sm:text-base mb-1 sm:mb-0">
+                  {key} <InfoCircledIcon className="ml-1 h-4 w-4 text-muted-foreground" />
                 </Label>
               </TooltipTrigger>
-              <TooltipContent side="top" className="bg-popover text-popover-foreground text-sm sm:text-base">
+              <TooltipContent side="top" align="start" className="bg-popover text-popover-foreground text-xs sm:text-sm max-w-xs" sideOffset={5} alignOffset={-5}>
                 <p>{tooltips[key]}</p>
               </TooltipContent>
             </Tooltip>
@@ -165,7 +165,7 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
             id={`${key}-input`}
             value={value.toString()}
             onChange={(e) => handleInputChange(e, key, min, max)}
-            className="w-full sm:w-[4.146rem] text-right bg-gray-100 border-gray-200 text-base sm:text-lg" 
+            className="w-full sm:w-20 text-right bg-gray-100 border-gray-200 text-sm" 
             step={step}
             min={min}
             max={max}
@@ -187,15 +187,15 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
   }
 
   const renderBooleanSetting = (key: BooleanSetting) => (
-    <div key={key} className="flex items-center justify-between space-x-2 sm:space-x-4">
+    <div key={key} className="flex items-center justify-between space-x-2">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Label htmlFor={key} className="flex items-center cursor-help text-base sm:text-lg">
-              {key} <InfoCircledIcon className="ml-1 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+            <Label htmlFor={key} className="flex items-center cursor-help text-sm sm:text-base">
+              {key} <InfoCircledIcon className="ml-1 h-4 w-4 text-muted-foreground" />
             </Label>
           </TooltipTrigger>
-          <TooltipContent side="top" className="bg-popover text-popover-foreground text-sm sm:text-base">
+          <TooltipContent side="top" align="start" className="bg-popover text-popover-foreground text-xs sm:text-sm max-w-xs" sideOffset={5} alignOffset={-5}>
             <p>{tooltips[key]}</p>
           </TooltipContent>
         </Tooltip>
@@ -204,24 +204,24 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
         id={key}
         checked={localSettings[key]}
         onCheckedChange={(checked) => handleSettingChange(key, checked)}
-        className="data-[state=checked]:bg-primary h-6 w-11 sm:h-8 sm:w-14 [&>span]:h-5 [&>span]:w-5 sm:[&>span]:h-7 sm:[&>span]:w-7"
+        className="data-[state=checked]:bg-primary h-5 w-10 [&>span]:h-4 [&>span]:w-4"
         disabled={disabled}
       />
     </div>
   )
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-4 sm:p-6">
-      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">AI Text Generation Settings</h2>
+    <div className="w-full max-w-3xl mx-auto p-4">
+      <h2 className="text-xl font-bold mb-4">AI Text Generation Settings</h2>
       <Tabs defaultValue="sampling" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-w-2xl mx-auto mb-4">
-          <TabsTrigger value="sampling" className="text-sm sm:text-base">Sampling</TabsTrigger>
-          <TabsTrigger value="tokens" className="text-sm sm:text-base">Tokens</TabsTrigger>
-          <TabsTrigger value="repetition" className="text-sm sm:text-base">Repetition</TabsTrigger>
-          <TabsTrigger value="misc" className="text-sm sm:text-base">Misc</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-4">
+          <TabsTrigger value="sampling" className="text-sm">Sampling</TabsTrigger>
+          <TabsTrigger value="tokens" className="text-sm">Tokens</TabsTrigger>
+          <TabsTrigger value="repetition" className="text-sm">Repetition</TabsTrigger>
+          <TabsTrigger value="misc" className="text-sm">Misc</TabsTrigger>
         </TabsList>
-        <div className="h-[60vh] sm:h-[600px] overflow-y-auto pr-2">
-          <TabsContent value="sampling" className="space-y-4 mt-4">
+        <ScrollArea className="h-[60vh] pr-4 overflow-visible">
+          <TabsContent value="sampling" className="space-y-4">
             {renderNumberSetting('temperature')}
             {renderNumberSetting('top_k')}
             {renderNumberSetting('top_p')}
@@ -229,19 +229,19 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
             {renderNumberSetting('tfs_z')}
             {renderNumberSetting('typical_p')}
           </TabsContent>
-          <TabsContent value="tokens" className="space-y-4 mt-4">
+          <TabsContent value="tokens" className="space-y-4">
             {renderNumberSetting('n_predict')}
             {renderNumberSetting('n_keep')}
             {renderBooleanSetting('ignore_eos')}
           </TabsContent>
-          <TabsContent value="repetition" className="space-y-4 mt-4">
+          <TabsContent value="repetition" className="space-y-4">
             {renderNumberSetting('repeat_penalty')}
             {renderNumberSetting('repeat_last_n')}
             {renderNumberSetting('presence_penalty')}
             {renderNumberSetting('frequency_penalty')}
             {renderBooleanSetting('penalize_nl')}
           </TabsContent>
-          <TabsContent value="misc" className="space-y-4 mt-4">
+          <TabsContent value="misc" className="space-y-4">
             {renderNumberSetting('mirostat')}
             {renderNumberSetting('mirostat_tau')}
             {renderNumberSetting('mirostat_eta')}
@@ -249,7 +249,7 @@ export default function InferenceSettingsComponent({ settings, onSettingsChange,
             {renderBooleanSetting('stream')}
             {renderBooleanSetting('cache_prompt')}
           </TabsContent>
-        </div>
+        </ScrollArea>
       </Tabs>
     </div>
   )

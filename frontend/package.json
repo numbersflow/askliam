@@ -41,8 +41,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "PORT=3000 react-scripts start",
-    "build": "react-scripts build",
+    "start:dev": "FRONT_ACTIVATE=dev react-scripts start",
+    "start:prod": "FRONT_ACTIVATE=prod react-scripts start",
+    "build:dev": "FRONT_ACTIVATE=dev react-scripts build",
+    "build:prod": "FRONT_ACTIVATE=prod react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
