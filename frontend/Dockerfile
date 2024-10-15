@@ -20,4 +20,4 @@ ENV PORT=3000
 ENV HOST=0.0.0.0
 
 # 개발 서버 실행
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:prod"]
