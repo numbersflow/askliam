@@ -41,10 +41,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start:dev": "FRONT_ACTIVATE=dev react-scripts start",
-    "start:prod": "FRONT_ACTIVATE=prod react-scripts start",
-    "build:dev": "FRONT_ACTIVATE=dev react-scripts build",
-    "build:prod": "FRONT_ACTIVATE=prod react-scripts build",
+    "start:dev": "cross-env REACT_APP_FRONT_ACTIVATE=dev react-scripts start",
+    "start:prod": "cross-env REACT_APP_FRONT_ACTIVATE=prod react-scripts start",
+    "build:dev": "cross-env REACT_APP_FRONT_ACTIVATE=dev react-scripts build",
+    "build:prod": "cross-env REACT_APP_FRONT_ACTIVATE=prod react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -72,6 +72,7 @@
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.20",
+    "cross-env": "^7.0.3",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13"
   }
