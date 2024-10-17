@@ -27,9 +27,9 @@ class ImageData(BaseModel):
 
 class CompletionRequest(BaseModel):
     prompt: str
-    temperature: float = 0.8
-    top_k: int = 40
-    top_p: float = 0.95
+    temperature: float = 0.2
+    top_k: int = 20
+    top_p: float = 0.65
     min_p: float = 0.05
     n_predict: int = -1
     n_keep: int = 0
@@ -47,59 +47,61 @@ class CompletionRequest(BaseModel):
     seed: int = -1
     ignore_eos: bool = False
     cache_prompt: bool = True
-    system_prompt: str = ""
+    system_prompt: Optional[str] = None
     session_id: str
     image_data: Optional[List[ImageData]] = None
+    max_context_length: int = 8192  # 모델의 최대 컨텍스트 길이
+    stop: List = ["0", "0", "0", "0"]
 
-class ChatSession:
-    def __init__(self, session_id):
-        self.session_id = session_id
 
-    def add_message(self, role, content):
-        # Redis에 대화 저장
-        conversation = redis_client.get(self.session_id)
+@router.post("/generate")
+async def generate(request: CompletionRequest):
+    session_id = request.session_id
+    print(session_id)
+    
+    # Retrieve conversation from Redis
+    conversation = redis_client.get(session_id)
+    previous_user = ""
+    previous_assistant = ""
+    present_user = request.prompt
+    
+    
+    if conversation:
+        # If there is previous conversation, extract the last user and assistant messages
+        conversation = json.loads(conversation)
         if conversation:
-            conversation = json.loads(conversation)
-        else:
-            conversation = {"system": "", "messages": []}
-        
-        if role == "system":
-            conversation["system"] = content
-        else:
-            conversation["messages"].append({"role": role, "content": content})
-        
-        redis_client.set(self.session_id, json.dumps(conversation))
+            previous_user = conversation[-1]['user'][:30]
+            previous_assistant = conversation[-1]['assistant'][:30]
 
-    def get_full_prompt(self, current_user_input):
-        # Redis에서 대화 불러오기
-        conversation = redis_client.get(self.session_id)
-        if conversation:
-            conversation = json.loads(conversation)
-            system_prompt = conversation.get("system", "")
-            messages = conversation.get("messages", [])
-            
-            prompt = f"system: {system_prompt}\n\n"
-            
-            # 최대 5개의 최근 메시지를 포함
-            recent_messages = messages[-2:]
-            for message in recent_messages:
-                role = message["role"]
-                content = message["content"]
-                prompt += f"{role}: {content}\n"
-        else:
-            prompt = ""
+    # Construct the full prompt using the template
+    full_prompt = (
+        f"system: {request.system_prompt}\n"
+        f"user: {previous_user}\n"
+        f"assistant: {previous_assistant}\n"
+        f"user: {present_user}\n"
+        f"assistant: "
+    )
+    
+    print("Generated Prompt:")
+    print(full_prompt)
 
-        # 현재 질문 추가
-        prompt += f"user: {current_user_input}\nassistant: "
-        print("Generated Prompt:")
-        print(prompt)
-        return prompt
+    # Set the prompt in the request
+    request.prompt = full_prompt
+    
+    # Calculate the input length
+    input_length = len(full_prompt)
+    print(request.max_context_length - input_length - 300)
+    # Dynamically set n_predict
+    request.n_predict = max(0, request.max_context_length - input_length - 300)
+    
+    # Send request to LLaMA server
+    return StreamingResponse(fetch_llama_stream(request, present_user, session_id), media_type="application/json")
 
-async def fetch_llama_stream(data: CompletionRequest, chat_session: ChatSession):
+
+async def fetch_llama_stream(data: CompletionRequest, present_user: str, session_id: str):
     async with httpx.AsyncClient() as client:
         request_data = data.dict(exclude_unset=True)
         
-        # 이미지 데이터가 있는 경우에만 image_data 필드 포함
         if data.image_data:
             request_data['image_data'] = [img.dict() for img in data.image_data]
         else:
@@ -115,26 +117,19 @@ async def fetch_llama_stream(data: CompletionRequest, chat_session: ChatSession)
                     yield json.dumps(json_data)
                 except json.JSONDecodeError:
                     yield chunk
-            # 어시스턴트의 응답을 대화에 추가
-            chat_session.add_message("assistant", assistant_response)
+            
+            # Store only the current user and assistant messages in Redis
+            new_entry = {
+                "user": present_user,
+                "assistant": assistant_response
+            }
+            
+            # Append the new entry to the existing conversation
+            conversation = redis_client.get(session_id)
+            if conversation:
+                conversation = json.loads(conversation)
+            else:
+                conversation = []
 
-@router.post("/generate")
-async def generate(request: CompletionRequest):
-    session_id = request.session_id
-    print(session_id)
-    chat_session = ChatSession(session_id)
-    
-    # 시스템 프롬프트 설정 (처음 한 번만)
-    if request.system_prompt:
-        chat_session.add_message("system", request.system_prompt)
-    
-    # 현재 질문을 대화에 추가
-    chat_session.add_message("user", request.prompt)
-    
-    # 현재 질문을 추가한 후에 프롬프트 생성
-    full_prompt = chat_session.get_full_prompt(request.prompt)
-    
-    # 프롬프트를 요청에 설정
-    request.prompt = full_prompt
-    
-    return StreamingResponse(fetch_llama_stream(request, chat_session), media_type="application/json")
+            conversation.append(new_entry)
+            redis_client.set(session_id, json.dumps(conversation))

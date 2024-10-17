@@ -113,47 +113,51 @@ export default function Component({ disabled }: ChatInterfaceProps) {
     }
   };
 
-  const handleSendMessage = async () => {
-    if ((newMessage.trim() || pastedImages.length > 0) && !disabled) {
-      setIsLoading(true);
-      const userMessage: ChatMessage = { role: 'user', content: newMessage, images: pastedImages };
-      setChatMessages(prev => [...prev, userMessage]);
+const handleSendMessage = async () => {
+  if ((newMessage.trim() || pastedImages.length > 0) && !disabled) {
+    setIsLoading(true);
 
-      if (chatContainerRef.current) {
-        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-      }
+    const maxLength = 3000;
+    const limitedMessage = newMessage.slice(0, maxLength); // 원본 메시지를 잘라냄
 
-      try {
-        const stream = await sendMessage(newMessage, pastedImages, inferenceSettings, systemPrompt, sessionId);
-        if (stream) {
-          const reader = stream.getReader();
-          let assistantMessage = '';
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = new TextDecoder().decode(value);
-            try {
-              const jsonData = JSON.parse(chunk);
-              assistantMessage += jsonData.content;
-              updateChatMessages(assistantMessage);
-            } catch (error) {
-              console.error('Error parsing JSON:', error);
-            }
+    const userMessage: ChatMessage = { role: 'user', content: limitedMessage, images: pastedImages };
+    setChatMessages(prev => [...prev, userMessage]);
+
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+
+    try {
+      const stream = await sendMessage(limitedMessage, pastedImages, inferenceSettings, systemPrompt, sessionId);
+      if (stream) {
+        const reader = stream.getReader();
+        let assistantMessage = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = new TextDecoder().decode(value);
+          try {
+            const jsonData = JSON.parse(chunk);
+            assistantMessage += jsonData.content;
+            updateChatMessages(assistantMessage);
+          } catch (error) {
+            console.error('Error parsing JSON:', error);
           }
         }
-      } catch (error) {
-        console.error('Error sending message:', error);
-      } finally {
-        setIsLoading(false);
-        setNewMessage('');
-        setPastedImages([]);
-        if (inputRef.current) {
-          inputRef.current.value = '';
-        }
-        updateServerUsage();
       }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsLoading(false);
+      setNewMessage('');
+      setPastedImages([]);
+      if (inputRef.current) {
+        inputRef.current.value = '';
+      }
+      updateServerUsage();
     }
   }
+}
 
   const handleSetSystemPrompt = (prompt: string) => {
     setSystemPrompt(prompt);
