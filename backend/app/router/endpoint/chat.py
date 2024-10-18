@@ -143,7 +143,7 @@ async def fetch_llama_stream(data: CompletionRequest, present_user: str, session
             # Store only the current user and assistant messages in Redis
             new_entry = {
                 "user": present_user,
-                "assistant": f"{assistant_response}[|endofturn|]"  # [|assistant|] 제거
+                "assistant": assistant_response  # [|endofturn|] 제거
             }
             
             # Append the new entry to the existing conversation
