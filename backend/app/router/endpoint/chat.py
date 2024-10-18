@@ -65,7 +65,6 @@ async def generate(request: CompletionRequest):
     previous_assistant = ""
     present_user = request.prompt
     
-    
     if conversation:
         # If there is previous conversation, extract the last user and assistant messages
         conversation = json.loads(conversation)
@@ -88,11 +87,9 @@ async def generate(request: CompletionRequest):
     # Set the prompt in the request
     request.prompt = full_prompt
     
-    # Calculate the input length
-    input_length = len(full_prompt)
-    print(request.max_context_length - input_length - 300)
-    # Dynamically set n_predict
-    request.n_predict = max(0, request.max_context_length - input_length - 300)
+    # Adjust n_predict if full_prompt length exceeds 2500 characters
+    if len(full_prompt) >= 2500:
+        request.n_predict = 5120 - len(full_prompt)
     
     # Send request to LLaMA server
     return StreamingResponse(fetch_llama_stream(request, present_user, session_id), media_type="application/json")
