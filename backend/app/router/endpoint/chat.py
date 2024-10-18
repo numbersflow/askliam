@@ -69,17 +69,31 @@ async def generate(request: CompletionRequest):
         # If there is previous conversation, extract the last user and assistant messages
         conversation = json.loads(conversation)
         if conversation:
-            previous_user = conversation[-1]['user'][:30]
-            previous_assistant = conversation[-1]['assistant'][:30]
+            previous_user = conversation[-1]['user'][:297]  # 300자에서 '...' 3자를 뺀 297자
+            previous_assistant = conversation[-1]['assistant'][:297]  # 300자에서 '...' 3자를 뺀 297자
+            
+            # 문장이 잘렸을 경우 '...'를 추가
+            if len(conversation[-1]['user']) > 297:
+                previous_user += '...'
+            if len(conversation[-1]['assistant']) > 297:
+                previous_assistant += '...'
 
     # Construct the full prompt using the template
-    full_prompt = (
-        f"system: {request.system_prompt}\n"
-        f"user: {previous_user}\n"
-        f"assistant: {previous_assistant}\n"
-        f"user: {present_user}\n"
-        f"assistant: "
-    )
+    full_prompt = ""
+
+    # Add system prompt if it exists
+    if request.system_prompt and request.system_prompt.strip():
+        full_prompt += f"[|system|]{request.system_prompt}[|endofturn|]\n"
+
+    # Add previous conversation if it exists
+    if previous_user and previous_assistant:
+        full_prompt += (
+            f"[|user|]{previous_user}\n"
+            f"[|assistant|]{previous_assistant}[|endofturn|]\n"  # [|assistant|] 추가
+        )
+
+    # Add current user input
+    full_prompt += f"[|user|]{present_user}\n[|assistant|]"
     
     print("Generated Prompt:")
     print(full_prompt)
@@ -110,15 +124,26 @@ async def fetch_llama_stream(data: CompletionRequest, present_user: str, session
                 try:
                     cleaned_chunk = re.sub(r'^data: ', '', chunk)
                     json_data = json.loads(cleaned_chunk)
-                    assistant_response += json_data.get("content", "")
+                    content = json_data.get("content", "")
+                    assistant_response += content
+                    
+                    # Check if the response is complete
+                    if "[|endofturn|]" in content:
+                        content = content.replace("[|endofturn|]", "").strip()
+                        json_data["content"] = content
+                        json_data["stop"] = True
+                    
                     yield json.dumps(json_data)
                 except json.JSONDecodeError:
                     yield chunk
             
+            # Remove any trailing [|endofturn|] if present
+            assistant_response = assistant_response.replace("[|endofturn|]", "").strip()
+            
             # Store only the current user and assistant messages in Redis
             new_entry = {
                 "user": present_user,
-                "assistant": assistant_response
+                "assistant": f"{assistant_response}[|endofturn|]"  # [|assistant|] 제거
             }
             
             # Append the new entry to the existing conversation
